@@ -1,0 +1,37 @@
+{
+  "length_m": 7000.816350819884,
+  "nominal_length_m": 7004.0,
+  "length_error_pct": -0.045454728442546194,
+  "samples": 7001,
+  "ds_m": 0.9999737681502476,
+  "icp_rotation_deg": -2.2837907065173373,
+  "dev_vs_bacinger_m": {
+    "rms": 1.1470679925866254,
+    "p95": 2.0877233507294037,
+    "max": 5.659350832383602,
+    "max_at_s": 258.99320595091416
+  },
+  "elevation_m": {
+    "min": 364.4632713463827,
+    "max": 467.17913677946177,
+    "delta": 102.71586543307905,
+    "min_at_s": 4973.869522779331,
+    "max_at_s": 2509.9341580571217,
+    "timing_line": 416.5550170308883
+  },
+  "max_grade_pct": {
+    "up": 14.912009655340144,
+    "down": -10.243675352784654,
+    "up_at_s": 1390.9635114969944,
+    "down_at_s": 3211.9157432985953
+  },
+  "width_m": {
+    "min": 7.8702933977744145,
+    "max": 16.44080480644762,
+    "mean": 9.770841091251821
+  },
+  "signed_area_m2": -923560.9448261894,
+  "pit_lane_length_m": 1163,
+  "pit_min_clearance_m": 0.7062699363283382,
+  "telemetry_overlay": "not run: FastF1 requires F1 account credentials (see PROGRESS.md)"
+}
