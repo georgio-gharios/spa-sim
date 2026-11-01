@@ -32,13 +32,17 @@ export function mountViewerHud(v: TrackViewer): void {
     if (e.code === 'KeyC') v.setMode('free');
     if (e.code === 'Space') v.paused = !v.paused;
   });
+  const gpu = document.createElement('div');
+  gpu.textContent = `GPU: ${v.gpuName}`;
+  gpu.style.opacity = '0.7';
+  el.insertBefore(gpu, el.querySelector('label'));
   const stats = el.querySelector<HTMLDivElement>('#hud-stats')!;
   const pos = el.querySelector<HTMLDivElement>('#hud-pos')!;
   let n = 0;
   v.onFrame = () => {
     if (n++ % 10) return;
     const s = v.getStats();
-    stats.textContent = `${s.fps.toFixed(0)} fps · ${s.frameMs.toFixed(1)} ms · ${s.drawCalls} draws · ${(s.triangles / 1e6).toFixed(2)} M tris · ${v.treeCount} trees`;
+    stats.textContent = `${s.fps.toFixed(0)} fps · ${s.frameMs.toFixed(1)} ms · ${s.drawCalls} draws · ${(s.triangles / 1e6).toFixed(2)} M tris · ${v.treeCount} trees · cpu ${v.cpuMs.toFixed(1)} ms`;
     const p = v.track.project(v.camera.position.x, -v.camera.position.z);
     const c = v.track.cornerAt(p.s);
     pos.textContent = `s ${p.s.toFixed(0)} m · S${v.track.sectorAt(p.s) + 1} · mini ${v.track.miniSectorAt(p.s) + 1} · ${c ? `T${c.n} ${c.name}` : '—'} · ${v.track.elevation(p.s).toFixed(1)} m ASL · ${v.mode}`;

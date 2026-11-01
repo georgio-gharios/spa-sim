@@ -10,7 +10,7 @@ declare global {
       ready: boolean;
       viewer: TrackViewer;
       placeFly: (s: number, opts?: { height?: number; back?: number; lateral?: number }) => void;
-      bench?: { frames: number; p50: number; p95: number; p99: number; avgFps: number };
+      bench?: { frames: number; p50: number; p95: number; p99: number; avgFps: number; cpuMs: number; gpu: string; dpr: number; size: string };
     };
   }
 }
@@ -22,7 +22,7 @@ async function boot(): Promise<void> {
   const weather = params.get('weather') === 'overcast' ? 'overcast' : 'sunny';
   const track = await loadTrack();
   const app = document.getElementById('app')!;
-  const viewer = new TrackViewer(track, app, quality, weather);
+  const viewer = new TrackViewer(track, app, quality, weather, { preserveDrawingBuffer: params.get('static') === '1' });
   if (params.get('hud') !== '0') mountViewerHud(viewer);
   window.__spa = {
     ready: true,
@@ -48,6 +48,7 @@ async function boot(): Promise<void> {
 function runBenchmark(viewer: TrackViewer): void {
   viewer.fly.speed = 80;
   const times: number[] = [];
+  const cpu: number[] = [];
   let last = performance.now();
   let travelled = 0;
   const step = (t: number) => {
@@ -56,6 +57,7 @@ function runBenchmark(viewer: TrackViewer): void {
     if (times.length > 5) travelled += viewer.fly.speed * dt;
     viewer.frame(t);
     times.push(dt * 1000);
+    cpu.push(viewer.cpuMs);
     if (travelled < viewer.track.length) {
       requestAnimationFrame(step);
       return;
@@ -63,11 +65,17 @@ function runBenchmark(viewer: TrackViewer): void {
     const sorted = times.slice(5).sort((a, b) => a - b);
     const pct = (p: number) => sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))]!;
     const avg = sorted.reduce((a, b) => a + b, 0) / sorted.length;
-    window.__spa!.bench = { frames: sorted.length, p50: pct(0.5), p95: pct(0.95), p99: pct(0.99), avgFps: 1000 / avg };
+    const cpuMs = cpu.reduce((a, b) => a + b, 0) / Math.max(1, cpu.length);
+    const c = viewer.renderer.domElement;
+    const size = `${c.width}x${c.height}`;
+    const dpr = viewer.renderer.getPixelRatio();
+    window.__spa!.bench = { frames: sorted.length, p50: pct(0.5), p95: pct(0.95), p99: pct(0.99), avgFps: 1000 / avg, cpuMs, gpu: viewer.gpuName, dpr, size };
     console.info('[bench]', JSON.stringify(window.__spa!.bench));
     const div = document.createElement('div');
     div.id = 'bench-result';
-    div.textContent = `Benchmark (${viewer.quality}): avg ${(1000 / avg).toFixed(1)} fps, p50 ${pct(0.5).toFixed(2)} ms, p95 ${pct(0.95).toFixed(2)} ms, p99 ${pct(0.99).toFixed(2)} ms over ${sorted.length} frames`;
+    div.textContent =
+      `Benchmark (${viewer.quality}): avg ${(1000 / avg).toFixed(1)} fps, p50 ${pct(0.5).toFixed(2)} ms, p95 ${pct(0.95).toFixed(2)} ms, ` +
+      `p99 ${pct(0.99).toFixed(2)} ms over ${sorted.length} frames | cpu ${cpuMs.toFixed(2)} ms/frame | ${size} @ ${dpr} | GPU: ${viewer.gpuName}`;
     document.body.appendChild(div);
   };
   requestAnimationFrame(step);

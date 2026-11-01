@@ -1,5 +1,6 @@
 import { DoubleSide, Group, Mesh, MeshStandardMaterial } from 'three';
 import type { TrackModel } from '../../track/TrackModel';
+import { splitByTiles } from '../tiling';
 import {
   armcoTexture,
   asphaltTexture,
@@ -27,11 +28,14 @@ export function buildTrackScene(track: TrackModel, wm: WorldMap, opts: TrackScen
   group.name = 'track';
   const add = (g: GeoBuilder, mat: MeshStandardMaterial, name: string, shadows = { cast: false, receive: true }) => {
     if (!g.vertexCount) return;
-    const m = new Mesh(g.build(), mat);
-    m.name = name;
-    m.castShadow = shadows.cast;
-    m.receiveShadow = shadows.receive;
-    group.add(m);
+    // one mesh per spatial tile so the main and shadow passes can frustum-cull
+    for (const geo of splitByTiles(g.build())) {
+      const m = new Mesh(geo, mat);
+      m.name = name;
+      m.castShadow = shadows.cast;
+      m.receiveShadow = shadows.receive;
+      group.add(m);
+    }
   };
   const a = opts.anisotropy;
 

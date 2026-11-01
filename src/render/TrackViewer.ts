@@ -35,12 +35,23 @@ export class TrackViewer {
   private frameTimes: number[] = [];
   private stats: FrameStats = { fps: 0, frameMs: 0, drawCalls: 0, triangles: 0 };
   onFrame: ((v: TrackViewer) => void) | null = null;
+  /** Smoothed CPU time spent submitting a frame (scene traversal + WebGL calls), ms. */
+  cpuMs = 0;
 
-  constructor(readonly track: TrackModel, readonly container: HTMLElement, quality: QualityPreset, weather: WeatherPreset) {
+  constructor(
+    readonly track: TrackModel,
+    readonly container: HTMLElement,
+    quality: QualityPreset,
+    weather: WeatherPreset,
+    opts: { preserveDrawingBuffer?: boolean } = {},
+  ) {
     this.quality = quality;
     this.settings = QUALITY[quality];
     this.wm = { baseZ: Math.round(track.raw(0).z) };
-    this.renderer = new WebGLRenderer({ antialias: this.settings.antialias, powerPreference: 'high-performance', preserveDrawingBuffer: true });
+    this.renderer = new WebGLRenderer({ antialias: this.settings.antialias, powerPreference: 'high-performance',
+      // only needed for canvas read-back in tests; it costs a buffer copy every frame otherwise
+      preserveDrawingBuffer: opts.preserveDrawingBuffer ?? false,
+    });
     this.renderer.outputColorSpace = SRGBColorSpace;
     this.renderer.toneMapping = ACESFilmicToneMapping;
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.settings.pixelRatioCap));
@@ -108,7 +119,29 @@ export class TrackViewer {
     this.renderer.setSize(w, h);
   }
 
+  /** GPU name as reported by the browser (helps spot laptops rendering on the integrated GPU). */
+  get gpuName(): string {
+    const gl = this.renderer.getContext();
+    const ext = gl.getExtension('WEBGL_debug_renderer_info');
+    return ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : String(gl.getParameter(gl.RENDERER));
+  }
+
+  private cullForest(): void {
+    if (!this.forest) return;
+    const max2 = this.settings.treeDistance * this.settings.treeDistance;
+    const c = this.camera.position;
+    for (const m of this.forest.children) {
+      const sph = (m as { boundingSphere?: { center: { x: number; z: number }; radius: number } | null }).boundingSphere;
+      if (!sph) continue;
+      const dx = sph.center.x - c.x;
+      const dz = sph.center.z - c.z;
+      const d = Math.max(0, Math.hypot(dx, dz) - sph.radius);
+      m.visible = d * d < max2;
+    }
+  }
+
   renderOnce(): void {
+    this.cullForest();
     this.lighting.follow(this.camera.position);
     this.renderer.render(this.scene, this.camera);
   }
@@ -120,7 +153,9 @@ export class TrackViewer {
       if (this.mode === 'fly-around') this.fly.update(dt);
       else this.free.update(dt);
     }
+    const t0 = performance.now();
     this.renderOnce();
+    this.cpuMs = this.cpuMs * 0.95 + (performance.now() - t0) * 0.05;
     this.frameTimes.push(dt * 1000);
     if (this.frameTimes.length > 120) this.frameTimes.shift();
     const avg = this.frameTimes.reduce((a, b) => a + b, 0) / this.frameTimes.length;
