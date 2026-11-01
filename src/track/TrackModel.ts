@@ -88,6 +88,13 @@ export class TrackModel {
   private readonly grid = new Map<number, number[]>();
 
   private readonly terrain: Float32Array | null;
+  private readonly pitGrid = new Map<number, number[]>();
+
+  /** Smoothed longitudinal grade dz/ds and vertical curvature d2z/ds2 (1/m; > 0 = compression/sag). */
+  private readonly gradeArr: Float64Array;
+  private readonly kvArr: Float64Array;
+  /** Max lateral offset sweepable on each side without folding (0.8 x smallest local radius). */
+  private readonly maxOff: { left: Float32Array; right: Float32Array };
 
   constructor(data: TrackData, terrain: Float32Array | null = null) {
     if (data.format !== 'spa-track/1') throw new Error(`Unsupported track format ${String(data.format)}`);
@@ -165,6 +172,49 @@ export class TrackModel {
     data.corners.forEach((c, ci) => {
       for (let i = 0; i < n; i++) if (inLoopRange(sAt(i), c.s0, c.s1)) this.cornerIdx[i] = ci;
     });
+
+    // vertical profile derivatives on a ~10 m smoothed elevation (tyres/suspension filter shorter bumps)
+    const zs = boxSmooth(boxSmooth(boxSmooth(this.zs, 8), 8), 8);
+    this.gradeArr = new Float64Array(n);
+    this.kvArr = new Float64Array(n);
+    for (let i = 0; i < n; i++) {
+      const a = zs[(i - 1 + n) % n]!;
+      const b = zs[i]!;
+      const c = zs[(i + 1) % n]!;
+      this.gradeArr[i] = (c - a) / (2 * this.ds);
+      this.kvArr[i] = (c - 2 * b + a) / (this.ds * this.ds);
+    }
+    // vertical curves on a racetrack are long (radii of hundreds of metres); differentiate twice only after
+    // a ~20 m smoothing, or LiDAR noise of a few centimetres becomes several g of fake compression
+    const kv2 = boxSmooth(boxSmooth(boxSmooth(this.kvArr, 12), 12), 12);
+    this.kvArr.set(kv2);
+
+    const w = Math.round(30 / this.ds);
+    const rl = new Float32Array(n);
+    const rr = new Float32Array(n);
+    for (let i = 0; i < n; i++) {
+      const k = this.ks[i]!;
+      rl[i] = k > 1e-6 ? 1 / k : 1e6;
+      rr[i] = k < -1e-6 ? -1 / k : 1e6;
+    }
+    const minWin = (arr: Float32Array) => {
+      const out = new Float32Array(n);
+      for (let i = 0; i < n; i++) {
+        let m = 1e6;
+        for (let j = -w; j <= w; j++) m = Math.min(m, arr[(((i + j) % n) + n) % n]!);
+        out[i] = 0.8 * m;
+      }
+      return out;
+    };
+    this.maxOff = { left: minWin(rl), right: minWin(rr) };
+
+    const pp = data.pit.path;
+    for (let i = 0; i < pp.x.length; i++) {
+      const key = this.gridKey(pp.x[i]!, pp.y[i]!);
+      let bucket = this.pitGrid.get(key);
+      if (!bucket) this.pitGrid.set(key, (bucket = []));
+      bucket.push(i);
+    }
 
     for (let i = 0; i < n; i++) {
       const key = this.gridKey(this.xs[i]!, this.ys[i]!);
@@ -387,6 +437,58 @@ export class TrackModel {
     return { surface: 'wall', kerb: null, outside: true, side };
   }
 
+  /** Longitudinal grade dz/ds at s (smoothed). */
+  grade(s: number): number {
+    return this.lerpArr(this.gradeArr, s);
+  }
+
+  /** Vertical curvature d2z/ds2 at s (1/m, > 0 in dips such as Eau Rouge). */
+  verticalCurvature(s: number): number {
+    return this.lerpArr(this.kvArr, s);
+  }
+
+  /** Largest lateral offset on one side that does not fold over on the inside of a corner. */
+  maxOffset(side: Side, s: number): number {
+    return this.maxOff[side][this.sampleIndex(s)]!;
+  }
+
+  /** Lateral offset (from the centerline) of the barrier face on one side at s. */
+  barrierOffset(side: Side, s: number): number {
+    const edge = side === 'right' ? this.widthRight(s) : this.widthLeft(s);
+    return Math.max(edge + 0.5, Math.min(edge + this.runoffWidth(side, s) + 0.3, this.maxOffset(side, s) + 0.3));
+  }
+
+  /** Is world (x, y) on the pit-lane surface? Returns the nearest pit-path index, or -1. */
+  pitLaneIndexAt(x: number, y: number): number {
+    const pp = this.data.pit.path;
+    const gx = Math.floor(x / this.gridCell);
+    const gy = Math.floor(y / this.gridCell);
+    let best = -1;
+    let bestD2 = Infinity;
+    for (let ix = gx - 1; ix <= gx + 1; ix++) {
+      for (let iy = gy - 1; iy <= gy + 1; iy++) {
+        const bucket = this.pitGrid.get((ix + 1000) * 4096 + iy + 1000);
+        if (!bucket) continue;
+        for (const i of bucket) {
+          const dx = pp.x[i]! - x;
+          const dy = pp.y[i]! - y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < bestD2) {
+            bestD2 = d2;
+            best = i;
+          }
+        }
+      }
+    }
+    if (best < 0) return -1;
+    const half = (pp.w?.[best] ?? this.data.pit.laneWidth) / 2;
+    return bestD2 <= half * half ? best : -1;
+  }
+
+  pitLaneAt(x: number, y: number): boolean {
+    return this.pitLaneIndexAt(x, y) >= 0;
+  }
+
   // ------------------------------------------------------------------ terrain
 
   /** Terrain height (m ASL) at world (x, y), bilinear; NaN outside the grid or if terrain isn't loaded. */
@@ -411,4 +513,17 @@ export class TrackModel {
   get terrainData(): Float32Array | null {
     return this.terrain;
   }
+}
+
+/** Circular box filter of half-width r samples. */
+function boxSmooth(a: Float64Array, r: number): Float64Array {
+  const n = a.length;
+  const out = new Float64Array(n);
+  let acc = 0;
+  for (let j = -r; j <= r; j++) acc += a[((j % n) + n) % n]!;
+  for (let i = 0; i < n; i++) {
+    out[i] = acc / (2 * r + 1);
+    acc += a[(i + r + 1) % n]! - a[(((i - r) % n) + n) % n]!;
+  }
+  return out;
 }

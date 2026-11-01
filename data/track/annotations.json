@@ -572,6 +572,13 @@
         "s1": 540,
         "type": "none",
         "note": "open to the pit-exit lane"
+      },
+      {
+        "side": "right",
+        "s0": 6200,
+        "s1": 6300,
+        "type": "none",
+        "note": "pit entry opening"
       }
     ]
   },
