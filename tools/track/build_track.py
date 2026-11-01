@@ -472,6 +472,7 @@ def main() -> None:
         "widthLeft": r3(wL),
         "widthRight": r3(wR),
         "corners": corners,
+        "timing": {"startLineS": ann["timingLine"]["startLineS"], "controlLineS": ann["timingLine"]["controlLineS"]},
         "sectors": {"boundaries": ann["sectors"]["boundaries"], "miniSectorCount": ann["sectors"]["miniSectorCount"]},
         "kerbs": kerbs,
         "runoff": {"default": ann["runoff"]["default"], "zones": ann["runoff"]["zones"]},

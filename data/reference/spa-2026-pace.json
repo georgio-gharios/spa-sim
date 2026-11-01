@@ -1,0 +1,17 @@
+{
+  "_doc": "Real-world pace reference for Spa-Francorchamps, 2026 cars. Used as Phase 2 lap-time / top-speed sanity targets. Values only: no driver or team names (project IP rules).",
+  "source": "2026 Belgian Grand Prix qualifying, Formula 1 live-timing data via FastF1 3.9 (signed-in F1 TV account), retrieved 2026-11-01. Personal validation use only.",
+  "qualifying": {
+    "poleLapS": 104.361,
+    "top8LapS": [104.361, 104.678, 104.801, 104.869, 104.893, 104.893, 105.02, 105.14],
+    "q1SlowestS": 110.177,
+    "entries": 22,
+    "sectorMedianS": { "s1": 30.25, "s2": 46.14, "s3": 28.39 },
+    "maxSpeedKmhCarData": { "min": 327, "max": 336 },
+    "speedTrapKmh": { "min": 297, "max": 315 }
+  },
+  "targets": {
+    "dryQualiLapS": { "min": 103.5, "max": 107.5, "note": "a well-driven lap at full dry pace should land near the 2026 pole time (±3 %)" },
+    "kemmelTopSpeedKmh": { "min": 315, "max": 345 }
+  }
+}

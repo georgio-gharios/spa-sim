@@ -128,15 +128,27 @@ describe('track queries', () => {
     expect(k.surface).toBe('kerb');
   });
 
-  it('sectors and mini-sectors partition the lap', () => {
-    expect(track.sectorAt(0)).toBe(0);
+  it('sectors and mini-sectors partition the lap from the control line', () => {
+    const c = track.controlLineS;
+    expect(track.sectorAt(c + 1)).toBe(0);
+    expect(track.sectorAt(0)).toBe(0); // the start gantry is after the control line
     expect(track.sectorAt(3000)).toBe(1);
-    expect(track.sectorAt(6900)).toBe(2);
-    expect(track.miniSectorAt(0)).toBe(0);
-    expect(track.miniSectorAt(track.length - 0.01)).toBe(19);
+    expect(track.sectorAt(6000)).toBe(2);
+    expect(track.sectorAt(c - 1)).toBe(2);
+    expect(track.miniSectorAt(c + 0.01)).toBe(0);
+    expect(track.miniSectorAt(c - 0.01)).toBe(19);
     const seen = new Set<number>();
     for (let s = 0; s < track.length; s += 10) seen.add(track.miniSectorAt(s));
     expect(seen.size).toBe(facts.miniSectors!.value);
+  });
+
+  it('sector split matches the 2026 qualifying sector times proportionally', () => {
+    // 2026 pole lap sectors ~30.2 / 46.1 / 28.3 s; S2 must be the longest by distance as well as time
+    const L = track.length;
+    const b = track.sectorBoundaries.map((x) => track.lapDistance(x));
+    const d = [b[0]!, b[1]! - b[0]!, L - b[1]!];
+    expect(d[1]).toBeGreaterThan(d[0]!);
+    expect(d[1]).toBeGreaterThan(d[2]!);
   });
 
   it('enforced track limits exist only where annotated', () => {

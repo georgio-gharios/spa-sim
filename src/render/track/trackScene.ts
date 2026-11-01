@@ -44,10 +44,12 @@ export function buildTrackScene(track: TrackModel, wm: WorldMap, opts: TrackScen
   const lineMat = new MeshStandardMaterial({ color: 0xf4f4f4, roughness: 0.6, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
   add(buildEdgeLines(track, wm), lineMat, 'white-lines');
 
-  const timing = buildCrossLine(track, wm, 0, 0.6);
+  // chequered finish/control line; plain white start line at the grid gantry
+  const timing = buildCrossLine(track, wm, track.controlLineS, 0.6);
   add(timing, new MeshStandardMaterial({ map: chequerTexture(), roughness: 0.6, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 }), 'timing-line');
   const sectorLines = new GeoBuilder();
   for (const b of track.sectorBoundaries) buildCrossLine(track, wm, b, 0.3, sectorLines);
+  buildCrossLine(track, wm, track.startLineS, 0.4, sectorLines);
   add(sectorLines, lineMat, 'sector-lines');
 
   const kerbs = buildKerbs(track, wm);

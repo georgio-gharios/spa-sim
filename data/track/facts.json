@@ -1,9 +1,33 @@
 {
   "_doc": "Real-world track facts used by tests and the game. Each has a source note. 'verify' = could not be checked against a primary source from the build environment (see docs/PROGRESS.md).",
-  "lapLengthM": { "value": 7004, "tolerancePct": 0.5, "source": "Published circuit length (7.004 km), as carried in bacinger/f1-circuits 'length' property; widely published by the circuit and championship." },
-  "cornerCount": { "value": 19, "source": "Commonly published Grand Prix circuit map (19 turns)." },
-  "direction": { "value": "clockwise", "source": "Circuit layout; confirmed by negative signed area of the centerline." },
-  "elevationChangeM": { "value": 102, "toleranceM": 8, "source": "Commonly cited ~102 m total elevation change (lowest near Stavelot, highest near Les Combes). verify" },
-  "pitLaneSpeedLimitKmh": { "value": 80, "source": "Sporting Regulations default pit-lane speed limit (Race Director may change per event). verify" },
-  "miniSectors": { "value": 20, "source": "Project default (brief)." }
+  "lapLengthM": {
+    "value": 7004,
+    "tolerancePct": 0.5,
+    "source": "Published circuit length (7.004 km), as carried in bacinger/f1-circuits 'length' property; widely published by the circuit and championship."
+  },
+  "cornerCount": {
+    "value": 19,
+    "source": "Commonly published Grand Prix circuit map (19 turns)."
+  },
+  "direction": {
+    "value": "clockwise",
+    "source": "Circuit layout; confirmed by negative signed area of the centerline."
+  },
+  "elevationChangeM": {
+    "value": 102,
+    "toleranceM": 8,
+    "source": "Commonly cited ~102 m total elevation change (lowest near Stavelot, highest near Les Combes). verify"
+  },
+  "pitLaneSpeedLimitKmh": {
+    "value": 80,
+    "source": "Sporting Regulations default pit-lane speed limit (Race Director may change per event). verify"
+  },
+  "miniSectors": {
+    "value": 20,
+    "source": "Project default (brief)."
+  },
+  "gridSize": {
+    "value": 22,
+    "source": "2026 Belgian GP qualifying classification: 22 entries (FastF1)."
+  }
 }

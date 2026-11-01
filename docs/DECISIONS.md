@@ -46,3 +46,10 @@ One line per decision: **what** — *why*.
 - Banking = atan((z_left_edge − z_right_edge) / span), smoothed over 8 m and clamped to ±8°. Annotation camber values are only a fallback. — *Measured; it agrees with the earlier guesses to within ~1°.*
 - Pit lane geometry is traced by hand from the SPW ORTHO_2026_PRINTEMPS orthophoto (0.25 m/px) as control points (world x/y or s/offset/edge) joined with a Catmull-Rom spline, with a per-point lane width. — *OSM is unreachable; the photo shows the 2026 state. The first version (lane on the left) was a wrong inference from geometry alone.*
 - The SPW web-service conditions allow free access with the source credited; raw downloads stay in data/raw/. — *Read from LicServicesSPW.pdf; the dataset's own licence record is on a blocked host (metawal.wallonie.be). Verify before any public release.*
+
+## Telemetry (2026 Belgian GP qualifying, FastF1)
+- Two lines are modelled: start line at s = 0 (grid gantry in the 2026 photo) and the finish/control line at s = 6882 m (where FastF1 laps begin; ±6 m over 8 laps). Laps, sectors and mini-sectors count from the control line. — *The real circuit has separate start and finish lines; keeping s = 0 at the gantry avoided shifting every annotation.*
+- Sector lines are at 2133 m and 4951 m (median of 8 laps, ±10 m). — *Replaces the assumed 2150/5150; the S2/S3 guess was 200 m off.*
+- Pace targets live in data/reference/spa-2026-pace.json (pole 104.361 s, dry quali target 103.5–107.5 s, Kemmel top speed 315–345 km/h). — *Real numbers go in data files with a source note (brief §5).*
+- Committed telemetry outputs are anonymised (laps ranked 1..5, no driver codes); raw exports stay in data/raw/telemetry/. — *Project IP rules (no real driver names) and the F1 data terms.*
+- Campus (T14) max deviation (8.5 m) is not treated as a geometry error: the orthophoto shows our edges on the real asphalt. — *F1 position data is good to ~2–5 m; a rigid alignment adds some error.*

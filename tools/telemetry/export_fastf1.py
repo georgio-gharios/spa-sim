@@ -31,6 +31,7 @@ def main() -> None:
     args = ap.parse_args()
     out = ROOT / "data" / "raw" / "telemetry"
     out.mkdir(parents=True, exist_ok=True)
+    (out / "cache").mkdir(parents=True, exist_ok=True)
     fastf1.Cache.enable_cache(str(out / "cache"))
     s = fastf1.get_session(args.year, "Belgian Grand Prix", args.session)
     s.load(laps=True, telemetry=True, weather=False, messages=False)

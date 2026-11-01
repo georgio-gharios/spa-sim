@@ -16,13 +16,14 @@
 | Fly-around of the full lap with no gaps or seams | ✅ `tests/render-geometry.test.ts`: the road is one closed manifold ribbon (exactly 2N boundary edges, 0 non-manifold, 0 degenerate) with all faces up. `e2e/track.spec.ts` flies the whole lap in 50 m steps in Chromium with no errors and checks each frame is non-blank. Screenshots in `docs/screens/`. |
 | Centerline length within ±0.5 % of 7.004 km | ✅ 6999.2 m (−0.07 %), measured independently in `tests/track.test.ts` |
 | Elevation plot matching the real profile | ✅ `docs/elevation-profile.png`, now from the **SPW LiDAR DTM 2021-22 (50 cm)**: drop to Eau Rouge, climb up Raidillon (peak grade 15.5 %) and Kemmel to Les Combes (468.8 m), long descent through Pouhon to Stavelot (366.6 m), climb back via Blanchimont. **Δ 102.3 m** vs ≈102 m published. Copernicus GLO-30 differs by 2.8 m RMS (datum offset −2.4 m). |
-| Overlay of centerline vs telemetry, max deviation documented | ⚠️ **Partial.** FastF1 telemetry is blocked (needs an F1 account). Done instead: overlay vs an independent OSM trace (bacinger), RMS 1.14 m, p95 2.09 m, **max 5.66 m at La Source** (`docs/centerline-overlay.png`). The telemetry overlay tool is ready and self-tested. |
+| Overlay of centerline vs telemetry, max deviation documented | ✅ `docs/telemetry-overlay.png`, `data/track/telemetry-report.json`: 5 fastest 2026 Belgian GP qualifying laps (FastF1). Lateral distance to centerline RMS ≤ 2.6 m (cars drive a racing line, not the centre), **max 8.5 m at Campus/T14 (~4.9 km)**. The 2026 orthophoto shows our edges on the real asphalt there, so the excess is position-data noise (2–5 m) plus cars using the painted runoff. Elevation vs telemetry Z: RMS ≤ 0.27 m, max 0.96 m (after a constant −1.0 m datum offset). |
 
-Test totals: Vitest 17/17, Playwright 1/1, `tsc --noEmit` clean.
+Test totals: Vitest 18/18, Playwright 1/1, `tsc --noEmit` clean.
 
 ### Known issues and assumptions (not stubs, but unverified)
 - **Now from primary sources (2026-11-01 update):** road elevation and banking (SPW LiDAR 50 cm, sampled every 2 m at centre and both edges); **pit lane re-traced from the SPW spring-2026 orthophoto**. It is on the RIGHT of the start/finish straight (the first version had it mirrored on the left): entry at ~6280 m east of the Bus Stop, loop inside La Source, exit merging ~540 m. Main grandstand moved to the left; stands added on the run to Eau Rouge. Timing line confirmed (gantry + grid at s ≈ 0).
-- **Still assumed:** kerb positions and types, most runoff surfaces and widths, barrier types, enforced track-limit corners (T4, T9, T19), sector boundaries. They can now be checked corner by corner against the 2026 orthophoto (next track pass).
+- **From 2026 qualifying telemetry:** finish/control line at s = 6882 m (laps and sectors start here; the start gantry is at s = 0, as at the real circuit), sector lines at 2133 m and 4951 m, and the Phase 2 pace targets in `data/reference/spa-2026-pace.json` (pole 1:44.361, 327–336 km/h max).
+- **Still assumed:** kerb positions and types, most runoff surfaces and widths, barrier types, enforced track-limit corners (T4, T9, T19). They can now be checked corner by corner against the 2026 orthophoto (next track pass).
 - Terrain away from the track still comes from the 30 m surface model (shifted onto the LiDAR datum), so forested areas include some canopy height.
 - Corner names for T9, T14 and T16 are best-knowledge; numbering should be checked against the official 2026 map.
 - **Performance (target laptop, owner-run, 2026-11-01):**
@@ -34,7 +35,9 @@ Test totals: Vitest 17/17, Playwright 1/1, `tsc --noEmit` clean.
 
 ### Blocked / owner actions
 1. ~~Network allow-list~~: Wallonia now works (LiDAR + 2026 orthophotos used). `overpass-api.de` connects but the connection closes after a few bytes every time, so OSM raw ways are still unavailable. The orthophotos cover the need.
-2. **FastF1 telemetry (needs an F1 TV subscription):** the owner is adding `F1_USERNAME` / `F1_PASSWORD` as environment variables plus the F1 domains; a new session then runs `docs/TELEMETRY.md`. That closes the last acceptance item and pins the sector boundaries and lap-time target.
+2. ~~FastF1 telemetry~~: done with the owner's F1 TV account (environment variables). Raw exports stay in git-ignored `data/raw/telemetry/`; committed outputs are anonymised ("lap 1..5").
+
+**Phase 1 acceptance: all four checks pass → tagged `v0.1-track` (local tag; see DECISIONS: git).**
 
 ### Next
 Phase 2: car physics (2026 regulations), the modular `CarSpec` architecture, and a keyboard-drivable prototype.

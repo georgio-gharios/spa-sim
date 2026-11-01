@@ -53,7 +53,9 @@ def overlay(paths: list[Path], label: str) -> dict:
 
     fig, axs = plt.subplots(1, 3, figsize=(18, 6), dpi=110)
     axs[0].plot(C[:, 0], C[:, 1], color="#1f5fa8", lw=2, label="centerline")
-    for p in paths:
+    for k, p in enumerate(paths):
+        # committed outputs never name real drivers: label laps by rank only
+        label = f"lap {k + 1}"
         raw = np.genfromtxt(p, delimiter=",", names=True)
         A = np.c_[raw["X_dm"], raw["Y_dm"]] * 0.1
         za = raw["Z_dm"] * 0.1
@@ -63,7 +65,7 @@ def overlay(paths: list[Path], label: str) -> dict:
         dz_off = float(np.median(dz))
         dz_dev = dz - dz_off
         r = {
-            "file": p.name,
+            "lap": label,
             "samples": int(len(X)),
             "lateral_rms_m": float(np.sqrt((dist**2).mean())),
             "lateral_p95_m": float(np.percentile(dist, 95)),
@@ -74,14 +76,15 @@ def overlay(paths: list[Path], label: str) -> dict:
             "z_dev_max_m": float(np.abs(dz_dev).max()),
         }
         report["files"].append(r)
-        axs[0].plot(X[:, 0], X[:, 1], lw=0.7, alpha=0.8, label=p.stem)
-        axs[1].plot(idx * m["ds"] / 1000, dist, lw=0.6, label=p.stem)
-        axs[2].plot(idx * m["ds"] / 1000, za - dz_off, lw=0.6, label=f"{p.stem} (shifted {dz_off:+.1f} m)")
+        axs[0].plot(X[:, 0], X[:, 1], lw=0.7, alpha=0.8, label=label)
+        o = np.argsort(idx)  # plot along the lap, not in time order (avoids a wrap line at the timing line)
+        axs[1].plot(idx[o] * m["ds"] / 1000, dist[o], lw=0.6, label=label)
+        axs[2].plot(idx[o] * m["ds"] / 1000, (za - dz_off)[o], lw=0.6, label=f"{label} (shifted {dz_off:+.1f} m)")
         print(json.dumps(r))
     axs[2].plot(np.arange(len(Z)) * m["ds"] / 1000, Z, color="k", lw=1.2, label="centerline z")
     axs[0].set_aspect("equal")
     axs[0].legend(fontsize=7)
-    axs[0].set_title(f"positions ({label})")
+    axs[0].set_title("2026 qualifying laps (aligned) vs centerline")
     axs[1].set_title("lateral distance telemetry -> centerline [m]")
     axs[1].set_xlabel("km")
     axs[2].set_title("elevation [m]")

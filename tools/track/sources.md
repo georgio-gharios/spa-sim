@@ -13,6 +13,6 @@
 
 Wanted but blocked from the build environment (see PROGRESS.md "Owner actions"):
 - OpenStreetMap raw ways (`highway=raceway`, pit lane `service=pit_lane`, gravel/grass areas) via Overpass.
-- FastF1 position telemetry (needs an F1 account since 2025/26).
+- (FastF1 telemetry now works with the owner's F1 TV account; see docs/TELEMETRY.md.)
 
 © OpenStreetMap contributors. Track geometry is derived from OSM data, available under the Open Database License.

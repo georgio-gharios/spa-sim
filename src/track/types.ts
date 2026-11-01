@@ -107,6 +107,8 @@ export interface TrackData {
   widthLeft: number[];
   widthRight: number[];
   corners: CornerDef[];
+  /** startLineS: grid/start gantry; controlLineS: finish line where laps and sector 1 begin. */
+  timing: { startLineS: number; controlLineS: number };
   sectors: { boundaries: number[]; miniSectorCount: number };
   kerbs: KerbDef[];
   runoff: { default: RunoffLayer[]; zones: RunoffZone[] };

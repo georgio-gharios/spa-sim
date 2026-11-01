@@ -62,6 +62,10 @@ export class TrackModel {
   readonly ds: number;
   readonly sectorBoundaries: readonly number[];
   readonly miniSectorCount: number;
+  /** Finish/control line: laps, sectors and mini-sectors are measured from here. */
+  readonly controlLineS: number;
+  /** Start line (grid), where the race start is given. */
+  readonly startLineS: number;
 
   private readonly xs: Float64Array;
   private readonly ys: Float64Array;
@@ -93,6 +97,8 @@ export class TrackModel {
     this.ds = data.ds;
     this.sectorBoundaries = data.sectors.boundaries;
     this.miniSectorCount = data.sectors.miniSectorCount;
+    this.controlLineS = data.timing.controlLineS;
+    this.startLineS = data.timing.startLineS;
     this.xs = Float64Array.from(data.x);
     this.ys = Float64Array.from(data.y);
     this.zs = Float64Array.from(data.z);
@@ -345,17 +351,22 @@ export class TrackModel {
     return ci >= 0 ? this.data.corners[ci]! : null;
   }
 
-  /** Sector index 0..2. */
+  /** Distance travelled since the control (finish) line, in [0, length). */
+  lapDistance(s: number): number {
+    return this.wrapS(s - this.controlLineS);
+  }
+
+  /** Sector index 0..2, counted from the control line. */
   sectorAt(s: number): number {
-    const w = this.wrapS(s);
+    const u = this.lapDistance(s);
     let k = 0;
-    for (const b of this.sectorBoundaries) if (w >= b) k++;
+    for (const b of this.sectorBoundaries) if (u >= this.lapDistance(b)) k++;
     return k;
   }
 
-  /** Mini-sector index 0..miniSectorCount-1 (equal-length by distance). */
+  /** Mini-sector index 0..miniSectorCount-1 (equal-length by distance from the control line). */
   miniSectorAt(s: number): number {
-    return Math.min(this.miniSectorCount - 1, Math.floor((this.wrapS(s) / this.length) * this.miniSectorCount));
+    return Math.min(this.miniSectorCount - 1, Math.floor((this.lapDistance(s) / this.length) * this.miniSectorCount));
   }
 
   /** Surface under a point given in track coordinates. */
