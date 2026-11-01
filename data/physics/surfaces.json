@@ -1,0 +1,16 @@
+{
+  "_doc": "Grip and rolling-resistance multipliers per surface, relative to dry race tarmac. Game-calibrated values (no single published source); documented in DECISIONS.md.",
+  "tarmac":  { "grip": 1.00, "rollingResistance": 0.012, "dragPerSpeed": 0.0,  "bumpAmplitude": 0.000, "source": "reference surface" },
+  "kerb":    { "grip": 0.92, "rollingResistance": 0.014, "dragPerSpeed": 0.0,  "bumpAmplitude": 0.004, "source": "painted kerbs offer less grip than asphalt; bump for rumble" },
+  "sausage": { "grip": 0.75, "rollingResistance": 0.03,  "dragPerSpeed": 0.0,  "bumpAmplitude": 0.03,  "source": "anti-cut kerb, unsettles the car" },
+  "grass":   { "grip": 0.50, "rollingResistance": 0.06,  "dragPerSpeed": 0.0,  "bumpAmplitude": 0.006, "source": "dry grass roughly half of tarmac grip" },
+  "gravel":  { "grip": 0.40, "rollingResistance": 0.25,  "dragPerSpeed": 6.0,  "bumpAmplitude": 0.012, "source": "gravel traps are designed to decelerate cars: high rolling drag plus speed-proportional drag (N per m/s per wheel-load-kN)" },
+  "pitlane": { "grip": 0.95, "rollingResistance": 0.012, "dragPerSpeed": 0.0,  "bumpAmplitude": 0.000, "source": "pit-lane asphalt" },
+  "wet": {
+    "_doc": "Wetness w in [0,1] (0 dry, 0.3 damp, 0.6 wet, 1 standing water). Grip multiplier per compound family at w = 0, 0.3, 0.6, 1.0.",
+    "slick":        [1.00, 0.72, 0.50, 0.36],
+    "intermediate": [0.80, 0.82, 0.74, 0.55],
+    "wet":          [0.70, 0.74, 0.72, 0.66],
+    "source": "game calibration reflecting the usual crossover order: slicks fastest dry, intermediates in damp/wet, full wets in standing water"
+  }
+}

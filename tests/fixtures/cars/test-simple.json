@@ -1,0 +1,36 @@
+{
+  "_doc": "TEST-ONLY car (never shipped). Proves the architecture: no hybrid, fixed wings, different module implementations, same physics core.",
+  "id": "test-simple",
+  "name": "Test Simple (N/A, fixed aero)",
+  "era": "test",
+  "ruleSet": "test",
+  "modules": { "powerUnit": "na-engine", "energyStore": null, "aeroController": "fixed-aero", "assists": "standard-assists" },
+  "mass": { "minimumKg": 600, "frontWeightFraction": 0.44, "cgHeightM": 0.30, "yawInertiaKgM2": 900 },
+  "fuel": { "capacityKg": 100, "lhvMJPerKg": 42.0, "energyFlowLimitMJPerH": 0 },
+  "dimensions": { "wheelbaseM": 3.0, "trackFrontM": 1.6, "trackRearM": 1.55, "overallWidthM": 1.8, "lengthM": 4.6 },
+  "wheels": { "radiusFrontM": 0.33, "radiusRearM": 0.34, "widthFrontM": 0.30, "widthRearM": 0.38, "inertiaKgM2": 1.0 },
+  "tyreModel": {
+    "peakSlipRatio": 0.11, "peakSlipAngleRad": 0.12, "shapeC": 1.35, "curvatureE": -0.2, "loadSensitivity": 0.10,
+    "referenceLoadN": 4000, "relaxationLengthM": 0.35, "longitudinalGripScale": 1.0, "lateralGripScale": 1.0,
+    "thermal": { "surfaceHeatCapacityJPerK": 6000, "carcassHeatCapacityJPerK": 40000, "slidingHeatFraction": 0.55, "rollingHeatCoef": 0.0045,
+      "surfaceToCarcassWPerK": 160, "surfaceCoolingWPerK": 22, "surfaceCoolingPerSpeed": 3.2, "carcassCoolingWPerK": 15, "blanketTempC": 80 },
+    "wear": { "perJoule": 1.6e-7, "gripLossAtFullWear": 0.30 }
+  },
+  "aero": {
+    "modes": { "fixed": { "clA": 2.4, "cdA": 1.1, "frontBalance": 0.42 } },
+    "rideHeight": { "staticFrontM": 0.05, "staticRearM": 0.07, "optimumM": 0.06, "sensitivity": 0.05, "stallBelowM": 0.0, "stallLoss": 0.0 }
+  },
+  "suspension": { "wheelRateFrontNPerM": 150000, "wheelRateRearNPerM": 140000, "dampingRatio": 0.6, "rollStiffnessFrontFraction": 0.55, "maxTravelM": 0.04 },
+  "steering": { "maxWheelAngleRad": 0.38 },
+  "brakes": { "maxTorqueFrontNm": 5000, "maxTorqueRearNm": 3500, "defaultBiasFront": 0.58 },
+  "drivetrain": {
+    "gearRatios": [3.2, 2.5, 2.05, 1.75, 1.52, 1.35], "finalDrive": 3.6, "upshiftTimeS": 0.08, "downshiftTimeS": 0.1,
+    "upshiftTorqueFactor": 0.0, "efficiency": 0.93, "engineInertiaKgM2": 0.12,
+    "differential": { "preloadNm": 150, "powerRamp": 0.4, "coastRamp": 0.3 }
+  },
+  "rollingResistance": 0.013,
+  "powerUnitParams": {
+    "ice": { "rpm": [3000, 6000, 9000, 12000, 15000, 17500, 18500], "kw": [100, 260, 420, 540, 600, 610, 580], "idleRpm": 3000, "revLimitRpm": 18500,
+      "upshiftRpm": 17800, "downshiftRpm": 11000, "thermalEfficiency": 0.30, "engineBrakeNmAtMaxRpm": 220 }
+  }
+}

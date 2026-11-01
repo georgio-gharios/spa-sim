@@ -1,0 +1,7 @@
+{
+  "_doc": "Ambient constants for Spa-Francorchamps.",
+  "gravity": { "value": 9.81, "unit": "m/s^2", "source": "standard gravity" },
+  "airDensity": { "value": 1.165, "unit": "kg/m^3", "source": "ISA density at ~420 m altitude and 20 °C (track mean elevation from the LiDAR profile)" },
+  "ambientTempC": { "value": 20, "source": "project default, dry summer day" },
+  "trackTempC": { "value": 32, "source": "project default" }
+}

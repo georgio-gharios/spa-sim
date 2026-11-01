@@ -1,0 +1,12 @@
+{
+  "_doc": "Per-circuit rule zones (distances s along the centerline, metres, start line s = 0).",
+  "activeAeroZones": {
+    "zones": [
+      { "name": "Kemmel", "s0": 1240, "s1": 2120 },
+      { "name": "Blanchimont run", "s0": 5260, "s1": 5640 },
+      { "name": "Start/finish straight", "s0": 6720, "s1": 130 }
+    ],
+    "source": "assumed: the long full-throttle sections (the FIA publishes zones per event; not reachable). Eau Rouge/Raidillon and Blanchimont itself stay in Corner mode."
+  },
+  "overtakeDetection": { "s": 6500, "source": "assumed: before the Bus Stop, one detection point per lap" }
+}

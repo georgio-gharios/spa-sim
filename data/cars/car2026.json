@@ -1,0 +1,208 @@
+{
+  "_doc": "Generic open-wheel car built to the 2026 technical regulations. No team identity. Real regulation values carry a 'source'; everything else is engineering estimate/calibration (see DECISIONS.md, 'Car physics').",
+  "id": "car2026",
+  "name": "2026 Regulation Car",
+  "era": "2026",
+  "ruleSet": "2026",
+  "modules": {
+    "powerUnit": "hybrid-v6-2026",
+    "energyStore": "es-2026",
+    "aeroController": "active-aero-2026",
+    "assists": "standard-assists"
+  },
+  "mass": {
+    "minimumKg": 768,
+    "minimumSource": "2026 regs: minimum mass 768 kg including driver, excluding fuel (Mercedes Blog / f1technical.net quoting the regulation); axle minimums 44 % / 54 %",
+    "frontWeightFraction": 0.455,
+    "cgHeightM": 0.27,
+    "yawInertiaKgM2": 1050,
+    "estimateNote": "CG height and yaw inertia: engineering estimates for a 3.4 m wheelbase single-seater"
+  },
+  "fuel": {
+    "capacityKg": 70,
+    "lhvMJPerKg": 42.0,
+    "energyFlowLimitMJPerH": 3000,
+    "source": "2026 PU regs: fuel energy flow limited (3000 MJ/h, verify) with ~70 kg race fuel (reports), 100 % sustainable fuel"
+  },
+  "dimensions": {
+    "wheelbaseM": 3.4,
+    "trackFrontM": 1.55,
+    "trackRearM": 1.5,
+    "overallWidthM": 1.9,
+    "lengthM": 5.3,
+    "source": "2026 regs: max wheelbase 3400 mm, max width 1900 mm (Mercedes W17 spec, Williams explainer); tracks/length estimated"
+  },
+  "wheels": {
+    "radiusFrontM": 0.355,
+    "radiusRearM": 0.355,
+    "widthFrontM": 0.28,
+    "widthRearM": 0.375,
+    "inertiaKgM2": 1.1,
+    "source": "18-inch wheels retained; 2026 tyres 25 mm narrower front, 30 mm narrower rear (FIA 2024 announcement as reported); diameter ~710 mm (estimate)"
+  },
+  "tyreModel": {
+    "peakSlipRatio": 0.1,
+    "peakSlipAngleRad": 0.115,
+    "shapeC": 1.35,
+    "curvatureE": -0.2,
+    "loadSensitivity": 0.1,
+    "referenceLoadN": 4000,
+    "relaxationLengthM": 0.35,
+    "longitudinalGripScale": 1.0,
+    "lateralGripScale": 1.0,
+    "thermal": {
+      "surfaceHeatCapacityJPerK": 6000,
+      "carcassHeatCapacityJPerK": 40000,
+      "slidingHeatFraction": 0.55,
+      "rollingHeatCoef": 0.0045,
+      "surfaceToCarcassWPerK": 160,
+      "surfaceCoolingWPerK": 22,
+      "surfaceCoolingPerSpeed": 3.2,
+      "carcassCoolingWPerK": 15,
+      "blanketTempC": 80
+    },
+    "wear": {
+      "perJoule": 1.6e-07,
+      "gripLossAtFullWear": 0.3
+    },
+    "source": "Magic-Formula style combined-slip model; parameters are calibration values (peak slip angle ~6-7 deg typical for racing slicks)"
+  },
+  "aero": {
+    "modes": {
+      "corner": {
+        "clA": 6.5,
+        "cdA": 1.08,
+        "frontBalance": 0.445
+      },
+      "straight": {
+        "clA": 2.8,
+        "cdA": 0.64,
+        "frontBalance": 0.4
+      }
+    },
+    "rideHeight": {
+      "staticFrontM": 0.035,
+      "staticRearM": 0.07,
+      "optimumM": 0.045,
+      "sensitivity": 0.18,
+      "stallBelowM": 0.012,
+      "stallLoss": 0.25
+    },
+    "source": "Calibrated to the 2026 Spa pace reference: ~30 % less downforce and ~50 % less drag in Straight mode than corner configuration (The Race, Silverstone 2026 explainers); absolute ClA/CdA tuned to lap time and top speed in data/reference/spa-2026-pace.json"
+  },
+  "suspension": {
+    "wheelRateFrontNPerM": 210000,
+    "wheelRateRearNPerM": 175000,
+    "dampingRatio": 0.65,
+    "rollStiffnessFrontFraction": 0.55,
+    "maxTravelM": 0.03,
+    "source": "engineering estimates (F1 wheel rates ~150-250 N/mm)"
+  },
+  "steering": {
+    "maxWheelAngleRad": 0.38,
+    "source": "estimate; enough lock for La Source"
+  },
+  "brakes": {
+    "maxTorqueFrontNm": 5600,
+    "maxTorqueRearNm": 3600,
+    "defaultBiasFront": 0.56,
+    "source": "estimate, sized to lock wheels at low speed and reach the grip limit at high speed; rear blended with MGU-K regeneration (brake-by-wire)"
+  },
+  "drivetrain": {
+    "gearRatios": [
+      4.3,
+      3.35,
+      2.75,
+      2.33,
+      2.02,
+      1.78,
+      1.6,
+      1.48
+    ],
+    "finalDrive": 3.0,
+    "upshiftTimeS": 0.03,
+    "downshiftTimeS": 0.05,
+    "upshiftTorqueFactor": 0.35,
+    "efficiency": 0.95,
+    "engineInertiaKgM2": 0.1,
+    "differential": {
+      "preloadNm": 100,
+      "powerRamp": 0.35,
+      "coastRamp": 0.25
+    },
+    "source": "8-speed gearbox required by regulation; ratios chosen for ~355 km/h at 11.8k rpm in 8th; shift times typical of seamless-shift units"
+  },
+  "rollingResistance": 0.012,
+  "powerUnitParams": {
+    "ice": {
+      "rpm": [
+        4000,
+        6000,
+        8000,
+        9000,
+        10000,
+        10500,
+        11000,
+        11500,
+        12000,
+        13000,
+        15000
+      ],
+      "kw": [
+        120,
+        230,
+        320,
+        360,
+        390,
+        400,
+        400,
+        395,
+        385,
+        350,
+        300
+      ],
+      "idleRpm": 4000,
+      "revLimitRpm": 15000,
+      "upshiftRpm": 11800,
+      "downshiftRpm": 7600,
+      "thermalEfficiency": 0.48,
+      "engineBrakeNmAtMaxRpm": 260,
+      "source": "~400 kW class turbo V6 limited by fuel energy flow (2026 PU regs: ICE output cut from ~550-560 kW); curve shape estimated"
+    },
+    "mguk": {
+      "maxKw": 350,
+      "efficiency": 0.95,
+      "source": "2026 PU regs: MGU-K up to 350 kW (Honda / Williams explainers)"
+    },
+    "energyPresets": {
+      "quali": {
+        "deployMinSpeedKmh": 100,
+        "superclipFromKmh": 310,
+        "superclipKw": 300,
+        "liftHarvestKw": 300,
+        "socFloor": 0.0
+      },
+      "balanced": {
+        "deployMinSpeedKmh": 90,
+        "superclipFromKmh": 285,
+        "superclipKw": 300,
+        "liftHarvestKw": 300,
+        "socFloor": 0.05
+      },
+      "harvest": {
+        "deployMinSpeedKmh": 140,
+        "superclipFromKmh": 255,
+        "superclipKw": 350,
+        "liftHarvestKw": 350,
+        "socFloor": 0.25
+      }
+    },
+    "energyPresetsSource": "Strategy calibration: deploy out of corners, harvest at full throttle above ~290 km/h ('superclipping', The Race 2026 explainer); matches the flat speed trace on Kemmel in 2026 Spa qualifying telemetry"
+  },
+  "systems": {
+    "_doc": "Derived at load time from the modules; listed here for readers.",
+    "hybrid": true,
+    "activeAero": true,
+    "overtakeMode": true
+  }
+}

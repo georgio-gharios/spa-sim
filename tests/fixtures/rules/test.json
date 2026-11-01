@@ -1,0 +1,8 @@
+{
+  "_doc": "TEST-ONLY RuleSet for the test-simple car: no hybrid energy rules, no active aero, no overtake mode, no DRS.",
+  "id": "test",
+  "era": "test",
+  "activeAero": { "allowed": false, "transitionTimeS": 0, "autoReturnOnBrake": true, "autoReturnOnLift": true },
+  "drs": { "allowed": false },
+  "pitLaneSpeedLimitKmh": { "value": 80 }
+}
