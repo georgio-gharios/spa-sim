@@ -20,6 +20,8 @@ export class DriveSession {
   private lastLap = 0;
   readonly timing: LapTiming = { current: 0, last: null, best: null, lapsDone: 0 };
   assistsPreset: 'casual' | 'pro' = 'casual';
+  /** Largest barrier closing speed (m/s) since takeImpact() was last called (for rumble). */
+  private impactMax = 0;
 
   constructor(
     readonly spec: CarSpec,
@@ -77,6 +79,8 @@ export class DriveSession {
     while (this.acc >= PHYSICS_DT && steps < 100) {
       this.car.step(PHYSICS_DT, this.input);
       this.acc -= PHYSICS_DT;
+      const imp = this.car.telemetry().impact;
+      if (imp > this.impactMax) this.impactMax = imp;
       steps++;
       if (this.car.lap !== this.lastLap) {
         this.lastLap = this.car.lap;
@@ -91,6 +95,12 @@ export class DriveSession {
     }
     this.timing.current = this.lapStart === null ? 0 : this.car.time - this.lapStart;
     return steps;
+  }
+
+  takeImpact(): number {
+    const v = this.impactMax;
+    this.impactMax = 0;
+    return v;
   }
 
   /** Fraction of a physics step not yet simulated (for render interpolation). */

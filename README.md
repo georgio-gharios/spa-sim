@@ -5,7 +5,7 @@ browsers. Built with TypeScript, Vite and Three.js, around a generic car built t
 technical regulations. All teams, sponsors, drivers and voices are fictional. The rules authority is
 "Race Control".
 
-**Status:** Phase 2 (2026 car physics + keyboard-drivable prototype) complete. New session? Start with [`docs/STATUS.md`](docs/STATUS.md). See [`docs/PROGRESS.md`](docs/PROGRESS.md) and [`docs/PLAN.md`](docs/PLAN.md).
+**Status:** Phase 3 (input: keyboard, gamepads, wheels, rebinding) complete. New session? Start with [`docs/STATUS.md`](docs/STATUS.md). See [`docs/PROGRESS.md`](docs/PROGRESS.md) and [`docs/PLAN.md`](docs/PLAN.md).
 
 ## Run
 
@@ -14,9 +14,14 @@ npm install
 npm run dev            # http://localhost:5173 — drive the 2026 car
 ```
 
-**Driving keys (prototype):** W/S or ↑/↓ throttle/brake · A/D or ←/→ steer · E/Q gear up/down (auto in Casual) ·
+**Controls:** keyboard, DualShock 4, DualSense, Xbox and other pads, and steering wheels, all hot-pluggable.
+**Esc** (or a pad's Options/Menu) opens the controls menu: rebind anything per device, deadzone/linearity/saturation,
+keyboard smoothing, wheel rotation, rumble. Settings are saved in the browser. The HUD shows the current bindings.
+
+Default keys: W/S or ↑/↓ throttle/brake · A/D or ←/→ steer · E/Q gear up/down (auto in Casual) ·
 X Straight-mode request · O overtake · P pit limiter · R reset car · H Casual/Pro assists · V chase/cockpit camera.
-Viewer: F fly-around · C free camera · Enter back to driving.
+Default pad: R2/RT throttle · L2/LT brake · left stick steer · ✕/A, □/X gears · △/Y straight mode · ○/B overtake.
+Viewer: F fly-around · C free camera · Enter back to driving. Real-hardware checklist: [`docs/MANUAL_TESTS.md`](docs/MANUAL_TESTS.md).
 
 Headless lap: `npx tsx tools/sim/hotlap.ts soft` (lap time, sectors, energy).
 

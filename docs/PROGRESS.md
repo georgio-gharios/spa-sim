@@ -1,5 +1,32 @@
 # Progress
 
+## Phase 3: Input (`v0.3-input`)
+
+### Built
+- `src/input/`: device-independent **actions** (throttle, brake, steer L/R, gears, straight-mode aero, overtake, pit limiter, reset, assists, camera, menu) with hold/toggle/press semantics; **response curves** (deadzone, saturation, linearity, radial deadzone, wheel rotation); **device detection** from `Gamepad.id` in Chrome and Firefox formats (DualShock 4, DualSense, Xbox/XInput, generic, Logitech/Thrustmaster/Fanatec wheels) with glyphs (✕ ○ □ △ / A B X Y / LT RT …) and a raw Sony HID → standard remap; a **bindings store** with defaults per device kind, per-device custom configs in localStorage, conflict handling and reset; **rumble cues** (kerbs, lock-ups, wheelspin, grass/gravel, impacts) sent as `dual-rumble`; the **InputManager** that merges every device into one `DriverInput`, with keyboard smoothing and speed-sensitive steering, hot-plugging, latches, taps shorter than a frame and "press a control to bind" capture.
+- `src/ui/controlsMenu.ts`: controls menu (Esc / Options / Menu, pauses the car): device tabs, binding chips with glyphs, "+ Bind", remove, live meters, curve sliders with a preview, keyboard smoothing, wheel rotation, rumble, reset to defaults. Toasts when a device connects or disconnects. The HUD hint is built from the active device's bindings.
+- `src/input/KeyboardDriver.ts` (Phase 2 prototype) removed; `DriveController` only consumes the InputManager's `DriverInput` and actions.
+- `docs/MANUAL_TESTS.md`: hardware checklist for the owner.
+
+### Verified (run 2026-11-01)
+| Acceptance check | Result |
+|---|---|
+| Each device type can complete a lap | ✅ `tests/input-laps.test.ts`: a scripted driver moves the raw controls of a mock keyboard, Xbox pad (standard), DualSense (standard), DualShock 4 (raw Firefox HID layout) and Logitech G29 wheel (900° rotation, pedals resting at +1); the InputManager reads them through each device's layout, bindings and curves, and the game's DriveSession runs the lap at 500 Hz. All five complete it with 0 wheels over and no impacts (keyboard 125.9 s, others 125.5 s at 85 % pace, no TC/ABS/steering assist). Manual checklist for real hardware: `docs/MANUAL_TESTS.md`. |
+| Rebinding persists across reloads | ✅ unit test (store reload) and `e2e/input.spec.ts` (real page reload in Chromium: DualSense throttle rebound to ✕ and keyboard brake + K survive; ✕ then drives the car; reset restores defaults) |
+| Deadzone maths test | ✅ `tests/input-units.test.ts`: deadzone/saturation/linearity end points, continuity, monotonicity, symmetry, clamping, radial deadzone, wheel rotation mapping |
+| Hot-plugging | ✅ unit test (connect/disconnect at any time, inputs released on unplug) and e2e (DualSense plugged in mid-session, wheel plugged in with the menu open, unplug toast and throttle released) |
+
+Test totals: Vitest 68/68, Playwright 3/3 (track fly-around, drive, input), `tsc` clean. Screenshot: `docs/screens/controls-menu.jpg`.
+
+### Known issues / not yet done
+- **Not checked on real hardware** (no devices in the cloud container): run `docs/MANUAL_TESTS.md`. The raw Sony layout and the wheel default axes (G29-style: wheel 0, throttle 2, brake 5) are best knowledge; pedals can be rebound by pressing them.
+- Rumble works only where the browser has `vibrationActuator.playEffect` (Chrome/Edge). Firefox has no vibration API for pads. Wheels get no force feedback (no browser API).
+- The menu is mouse-driven; pad navigation of the menu comes with the Phase 11 menus.
+- No clutch axis (auto clutch is always on in the physics), no handbrake / look-back / radio actions yet (later phases add actions as needed).
+
+### Next
+Phase 4: timing, HUD, cameras, replays and sessions (incl. Q1/Q2/Q3).
+
 ## Phase 2: Car physics, 2026 regulations (`v0.2-physics`)
 
 ### Built
