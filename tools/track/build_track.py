@@ -77,6 +77,15 @@ def icp_rigid(A: np.ndarray, B_dense: np.ndarray, iters: int = 80):
     return R, t, dist
 
 
+def curvature_fd(x: np.ndarray, y: np.ndarray) -> np.ndarray:
+    """Signed curvature of a closed, ~uniformly sampled polyline (finite differences, wrap)."""
+    dx = (np.roll(x, -1) - np.roll(x, 1)) / 2
+    dy = (np.roll(y, -1) - np.roll(y, 1)) / 2
+    ddx = np.roll(x, -1) - 2 * x + np.roll(x, 1)
+    ddy = np.roll(y, -1) - 2 * y + np.roll(y, 1)
+    return (dx * ddy - dy * ddx) / np.maximum((dx**2 + dy**2) ** 1.5, 1e-9)
+
+
 def wrap(s: float | np.ndarray, L: float):
     return np.mod(s, L)
 
@@ -205,15 +214,43 @@ def main() -> None:
     u = np.interp(a_target, arc, par)
     x = cx(u)
     y = cy(u)
+    wL = cwl(u)
+    wR = cwr(u)
+
+    # The OSM-derived polyline has vertex kinks at the tightest apexes (e.g. a 5.6 m radius spike at
+    # La Source). Locally smooth positions wherever the centerline radius drops below MIN_RADIUS.
+    MIN_RADIUS = 12.0
+    for it in range(400):
+        k = curvature_fd(x, y)
+        bad = np.abs(k) > 1.0 / MIN_RADIUS
+        if not bad.any():
+            break
+        m = gaussian_filter1d(bad.astype(float), 6, mode="wrap")
+        m = np.clip(m * 3, 0, 1)
+        xs = gaussian_filter1d(x, 2.0, mode="wrap")
+        ys = gaussian_filter1d(y, 2.0, mode="wrap")
+        x = x * (1 - m) + xs * m
+        y = y * (1 - m) + ys * m
+    log(f"curvature regularisation: {it} iterations, max |k| now {np.abs(curvature_fd(x, y)).max():.4f}")
+    # refit and resample uniformly (smoothing perturbs the spacing slightly); index 0 stays the timing line
+    P2 = np.vstack([np.c_[x, y], [x[0], y[0]]])
+    s2 = np.r_[0, np.cumsum(np.linalg.norm(np.diff(P2, axis=0), axis=1))]
+    sx = CubicSpline(s2, P2[:, 0], bc_type="periodic")
+    sy = CubicSpline(s2, P2[:, 1], bc_type="periodic")
+    swl = CubicSpline(s2, np.r_[wL, wL[:1]], bc_type="periodic")
+    swr = CubicSpline(s2, np.r_[wR, wR[:1]], bc_type="periodic")
+    L = float(s2[-1])
+    N = int(round(L))
+    ds = L / N
+    s_out = np.arange(N) * ds
+    x, y, wL, wR = sx(s_out), sy(s_out), swl(s_out), swr(s_out)
+    dx, dy = sx(s_out, 1), sy(s_out, 1)
+    ddx, ddy = sx(s_out, 2), sy(s_out, 2)
+    heading = np.arctan2(dy, dx)
+    curvature = (dx * ddy - dy * ddx) / (dx**2 + dy**2) ** 1.5
     x0, y0 = float(x[0]), float(y[0])
     x -= x0
     y -= y0
-    dx, dy = cx(u, 1), cy(u, 1)
-    heading = np.arctan2(dy, dx)
-    ddx, ddy = cx(u, 2), cy(u, 2)
-    curvature = (dx * ddy - dy * ddx) / (dx**2 + dy**2) ** 1.5
-    wL = cwl(u)
-    wR = cwr(u)
 
     # geographic origin of the timing line
     to_ll = Transformer.from_crs(
