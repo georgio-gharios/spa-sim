@@ -85,7 +85,7 @@ export class LightingRig {
     this.sun.target.position.copy(p);
     this.sun.position.copy(p).addScaledVector(this.sunDir, 800);
     // texel snapping reduces shadow shimmering while moving
-    const texel = (2 * this.shadowDistance) / this.sun.shadow.mapSize.x;
+    const texel = Math.max(0.05, (2 * Math.max(this.shadowDistance, 1)) / this.sun.shadow.mapSize.x);
     this.sun.target.position.x = Math.round(this.sun.target.position.x / texel) * texel;
     this.sun.target.position.z = Math.round(this.sun.target.position.z / texel) * texel;
     this.sun.position.x = this.sun.target.position.x + this.sunDir.x * 800;
