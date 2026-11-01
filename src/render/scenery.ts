@@ -26,12 +26,13 @@ import type { TrackModel } from '../track/TrackModel';
 import type { Side } from '../track/types';
 import { barrierOffset, GeoBuilder, type WorldMap } from './track/geometry';
 import { crowdTexture, grassTexture, signTexture } from './textures';
+import { mergeStaticByMaterial, splitByTiles, tileKey } from './tiling';
 
 export const toThree = (x: number, y: number, z: number, wm: WorldMap): Vector3 => new Vector3(x, z - wm.baseZ, -y);
 
 // ------------------------------------------------------------------------------------------------ terrain
 
-export function buildTerrain(track: TrackModel, wm: WorldMap, aniso: number): Mesh {
+export function buildTerrain(track: TrackModel, wm: WorldMap, aniso: number): Group {
   const t = track.data.terrain;
   const h = track.terrainData;
   if (!h) throw new Error('terrain not loaded');
@@ -56,12 +57,15 @@ export function buildTerrain(track: TrackModel, wm: WorldMap, aniso: number): Me
       g.idx.push(a, a + 1, a + t.nx, a + 1, a + t.nx + 1, a + t.nx);
     }
   }
-  const geo = g.build();
   const mat = new MeshStandardMaterial({ map: grassTexture(aniso), vertexColors: true, roughness: 0.95 });
-  const m = new Mesh(geo, mat);
-  m.receiveShadow = true;
-  m.name = 'terrain';
-  return m;
+  const group = new Group();
+  group.name = 'terrain';
+  for (const geo of splitByTiles(g.build(), 400)) {
+    const m = new Mesh(geo, mat);
+    m.receiveShadow = true;
+    group.add(m);
+  }
+  return group;
 }
 
 /** Smooth value noise in [0, 1). */
@@ -200,15 +204,23 @@ export function buildForest(track: TrackModel, wm: WorldMap, opts: ForestOptions
   const group = new Group();
   group.name = 'forest';
   const mat = new MeshStandardMaterial({ vertexColors: true, roughness: 0.9, flatShading: true });
-  for (const broad of [false, true]) {
-    const list = chosen.filter((p) => p.broad === broad);
-    if (!list.length) continue;
-    const mesh = new InstancedMesh(broad ? broadleaf() : conifer(), mat, list.length);
-    const m = new Matrix4();
-    const q = new Quaternion();
-    const tint = new Color();
+  const geos = { conifer: conifer(), broad: broadleaf() };
+  const tiles = new Map<string, typeof chosen>();
+  for (const p of chosen) {
+    const key = `${p.broad ? 'b' : 'c'}:${tileKey(p.x, -p.y, 300)}`;
+    let l = tiles.get(key);
+    if (!l) tiles.set(key, (l = []));
+    l.push(p);
+  }
+  const m = new Matrix4();
+  const q = new Quaternion();
+  const tint = new Color();
+  const up = new Vector3(0, 1, 0);
+  for (const [key, list] of tiles) {
+    const broad = key.startsWith('b');
+    const mesh = new InstancedMesh(broad ? geos.broad : geos.conifer, mat, list.length);
     list.forEach((p, k) => {
-      q.setFromAxisAngle(new Vector3(0, 1, 0), p.r);
+      q.setFromAxisAngle(up, p.r);
       m.compose(toThree(p.x, p.y, p.z - 0.3, wm), q, new Vector3(p.s, p.s * (broad ? 1 : 1.1), p.s));
       mesh.setMatrixAt(k, m);
       const v = 0.82 + valueNoise(p.x / 40, p.y / 40, 9) * 0.3;
@@ -216,8 +228,7 @@ export function buildForest(track: TrackModel, wm: WorldMap, opts: ForestOptions
     });
     mesh.castShadow = opts.castShadow;
     mesh.receiveShadow = false;
-    mesh.computeBoundingSphere();
-    mesh.frustumCulled = false; // one instanced mesh spans the whole site
+    mesh.computeBoundingSphere(); // per-tile bounds: culled like any other mesh
     group.add(mesh);
   }
   group.userData.count = chosen.length;
@@ -407,9 +418,8 @@ function signage(track: TrackModel, wm: WorldMap, parent: Group): void {
   for (let s = 40; s < track.length; s += 90) if (rng.next() < 0.45) addBoard(s, rng.next() < 0.5 ? 'left' : 'right');
   builders.forEach((g, k) => {
     if (!g.vertexCount) return;
-    const m = new Mesh(g.build(), mats[k]!);
-    (m.material as MeshStandardMaterial).side = DoubleSide;
-    parent.add(m);
+    mats[k]!.side = DoubleSide;
+    for (const geo of splitByTiles(g.build())) parent.add(new Mesh(geo, mats[k]!));
   });
 }
 
@@ -472,5 +482,6 @@ export function buildStructures(track: TrackModel, wm: WorldMap): Group {
   gantry(track, wm, group, 0, null, true);
   gantry(track, wm, group, 1650, 'brand', false);
   gantry(track, wm, group, 6250, 'brand', false);
-  return group;
+  // ~200 small boxes -> a handful of merged, tiled meshes (draw calls matter in both render passes)
+  return mergeStaticByMaterial(group, (m) => m.name.startsWith('start-light'));
 }

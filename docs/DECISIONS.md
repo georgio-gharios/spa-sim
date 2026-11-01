@@ -31,3 +31,10 @@ One line per decision: **what** — *why*.
 - three r0.187 with the WebGL2 renderer. — *WebGPU stays an option for Phase 11 (Q20).*
 - Playwright runs Chromium with SwiftShader on the Low preset. — *No GPU in CI/cloud; all presets share the same geometry, so the full-lap check stays valid.*
 - Quality presets: Low/Medium/High/Ultra = trees 8k/20k/40k/70k, shadows off/1k/2k/4k, anisotropy 2/4/8/16, pixel ratio cap 1/1/1.5/2. — *Starting points; to be tuned with real numbers from the target laptop.*
+
+## Rendering performance
+- Every large mesh is split into ~250 m tiles (terrain and forest 300–400 m) instead of whole-lap meshes. — *Whole-lap meshes have site-sized bounding spheres, so nothing was ever culled in the main or shadow pass; the owner measured 20 fps on High.*
+- Forest tiles beyond a per-preset distance are hidden (Low/Med/High/Ultra 0.8/1.3/1.9/2.8 km). — *They are fog-faded anyway, and the forest was the largest triangle load.*
+- Static structures are merged by material, then re-tiled; start lights stay separate. — *About 200 small boxes were 200+ draw calls in each pass.*
+- `preserveDrawingBuffer` is only on with `?static=1` (tests/screenshots). — *It forces a buffer copy every frame.*
+- The benchmark reports the GPU renderer string and CPU frame time. — *Hybrid-graphics laptops often run browsers on the iGPU; the numbers must show which GPU was measured.*
