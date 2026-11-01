@@ -18,7 +18,7 @@ import numpy as np
 from scipy.spatial import cKDTree
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from build_track import icp_rigid  # noqa: E402
+from geo import icp_rigid  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 

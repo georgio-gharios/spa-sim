@@ -31,6 +31,9 @@ from scipy.interpolate import CubicSpline
 from scipy.ndimage import gaussian_filter, gaussian_filter1d, grey_opening, percentile_filter
 from scipy.spatial import cKDTree
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from geo import icp_rigid  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[2]
 RAW = ROOT / "data" / "raw"
 OUT = ROOT / "data" / "track"
@@ -52,29 +55,6 @@ def densify(P: np.ndarray, step: float = 1.0) -> np.ndarray:
         out.append(a + (b - a) * t)
     out.append(P[-1:])
     return np.vstack(out)
-
-
-def icp_rigid(A: np.ndarray, B_dense: np.ndarray, iters: int = 80):
-    """Fit rotation R and translation t so that A @ R.T + t matches the polyline B (dense points)."""
-    tree = cKDTree(B_dense)
-    R = np.eye(2)
-    t = B_dense.mean(0) - A.mean(0)
-    for _ in range(iters):
-        X = A @ R.T + t
-        _, idx = tree.query(X)
-        Y = B_dense[idx]
-        mx, my = X.mean(0), Y.mean(0)
-        H = (X - mx).T @ (Y - my)
-        U, _, Vt = np.linalg.svd(H)
-        Ri = Vt.T @ U.T
-        if np.linalg.det(Ri) < 0:
-            Vt[1] *= -1
-            Ri = Vt.T @ U.T
-        R = Ri @ R
-        t = Ri @ (t - mx) + my
-    X = A @ R.T + t
-    dist, _ = tree.query(X)
-    return R, t, dist
 
 
 def curvature_fd(x: np.ndarray, y: np.ndarray) -> np.ndarray:
