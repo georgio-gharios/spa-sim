@@ -1,0 +1,630 @@
+{
+  "_doc": "Hand-authored track annotations, input to tools/track/build_track.py. Distances s are metres along the centerline from the timing line (s=0), clockwise. 'left'/'right' are relative to the driving direction. camberDeg > 0 means the road surface falls towards the right-hand edge. Every block carries a 'source' note; 'assumed' means no reachable primary source confirmed it (OSM raw ways, orthophotos and telemetry were blocked from the build environment; see docs/PROGRESS.md).",
+  "timingLine": {
+    "source": "bacinger/f1-circuits be-1925.geojson first vertex (TUMFTM s=145 m). Assumed to be the timing line; verify with FastF1 Distance=0 when telemetry is available."
+  },
+  "corners": {
+    "source": "Positions from curvature peaks of the TUMFTM centerline; numbering and names follow the commonly published Grand Prix circuit map (19 turns). Names are geographic and free to use.",
+    "list": [
+      {
+        "n": 1,
+        "name": "La Source",
+        "dir": "R",
+        "apex": 258,
+        "s0": 175,
+        "s1": 335
+      },
+      {
+        "n": 2,
+        "name": "Eau Rouge",
+        "dir": "L",
+        "apex": 917,
+        "s0": 870,
+        "s1": 950
+      },
+      {
+        "n": 3,
+        "name": "Raidillon",
+        "dir": "R",
+        "apex": 987,
+        "s0": 950,
+        "s1": 1060
+      },
+      {
+        "n": 4,
+        "name": "Raidillon (top)",
+        "dir": "L",
+        "apex": 1140,
+        "s0": 1080,
+        "s1": 1200
+      },
+      {
+        "n": 5,
+        "name": "Les Combes",
+        "dir": "R",
+        "apex": 2285,
+        "s0": 2215,
+        "s1": 2330
+      },
+      {
+        "n": 6,
+        "name": "Les Combes (exit)",
+        "dir": "L",
+        "apex": 2378,
+        "s0": 2330,
+        "s1": 2430
+      },
+      {
+        "n": 7,
+        "name": "Malmedy",
+        "dir": "R",
+        "apex": 2530,
+        "s0": 2470,
+        "s1": 2600
+      },
+      {
+        "n": 8,
+        "name": "Rivage",
+        "dir": "R",
+        "apex": 2900,
+        "s0": 2820,
+        "s1": 2990
+      },
+      {
+        "n": 9,
+        "name": "Turn 9",
+        "dir": "L",
+        "apex": 3159,
+        "s0": 3100,
+        "s1": 3230
+      },
+      {
+        "n": 10,
+        "name": "Pouhon",
+        "dir": "L",
+        "apex": 3720,
+        "s0": 3650,
+        "s1": 3790
+      },
+      {
+        "n": 11,
+        "name": "Pouhon (exit)",
+        "dir": "L",
+        "apex": 3905,
+        "s0": 3830,
+        "s1": 3980
+      },
+      {
+        "n": 12,
+        "name": "Les Fagnes",
+        "dir": "R",
+        "apex": 4420,
+        "s0": 4370,
+        "s1": 4470
+      },
+      {
+        "n": 13,
+        "name": "Les Fagnes (exit)",
+        "dir": "L",
+        "apex": 4540,
+        "s0": 4490,
+        "s1": 4600
+      },
+      {
+        "n": 14,
+        "name": "Campus",
+        "dir": "R",
+        "apex": 4809,
+        "s0": 4760,
+        "s1": 4860
+      },
+      {
+        "n": 15,
+        "name": "Stavelot",
+        "dir": "R",
+        "apex": 5035,
+        "s0": 4960,
+        "s1": 5110
+      },
+      {
+        "n": 16,
+        "name": "Courbe Paul Fr\u00e8re",
+        "dir": "R",
+        "apex": 5300,
+        "s0": 5190,
+        "s1": 5450
+      },
+      {
+        "n": 17,
+        "name": "Blanchimont",
+        "dir": "L",
+        "apex": 6040,
+        "s0": 5650,
+        "s1": 6100
+      },
+      {
+        "n": 18,
+        "name": "Bus Stop",
+        "dir": "R",
+        "apex": 6606,
+        "s0": 6560,
+        "s1": 6630
+      },
+      {
+        "n": 19,
+        "name": "Bus Stop (exit)",
+        "dir": "L",
+        "apex": 6654,
+        "s0": 6630,
+        "s1": 6690
+      }
+    ]
+  },
+  "sectors": {
+    "source": "assumed: S1 ends at the end of the Kemmel straight before Les Combes braking; S3 starts after Stavelot exit. Matches the usual split (S1 high-speed incl. Eau Rouge, S2 twisty middle, S3 Blanchimont + Bus Stop). Verify against timing data.",
+    "boundaries": [
+      2150,
+      5150
+    ],
+    "miniSectorCount": 20
+  },
+  "kerbs": {
+    "source": "assumed, rule-based: inside kerb around every apex, outside kerb on every corner exit, overrides below. Heights: flat 0.0 m, standard 0.03 m, sausage 0.10 m.",
+    "defaults": {
+      "insideWidth": 1.2,
+      "outsideWidth": 1.5,
+      "insideBefore": 35,
+      "insideAfter": 25,
+      "outsideAfterApex": 10,
+      "outsideBeyondExit": 20
+    },
+    "extra": [
+      {
+        "side": "right",
+        "s0": 6596,
+        "s1": 6620,
+        "type": "sausage",
+        "width": 0.6,
+        "offset": 1.4,
+        "note": "Bus Stop T18 anti-cut sausage behind apex kerb"
+      },
+      {
+        "side": "left",
+        "s0": 6644,
+        "s1": 6664,
+        "type": "sausage",
+        "width": 0.6,
+        "offset": 1.4,
+        "note": "Bus Stop T19 anti-cut sausage"
+      },
+      {
+        "side": "right",
+        "s0": 1190,
+        "s1": 1240,
+        "type": "sausage",
+        "width": 0.6,
+        "offset": 3.0,
+        "note": "Raidillon exit, beyond the track-limits line"
+      }
+    ],
+    "typeOverrides": [
+      {
+        "corner": 1,
+        "type": "flat",
+        "note": "La Source: wide flat kerbs"
+      },
+      {
+        "corner": 2,
+        "type": "flat"
+      },
+      {
+        "corner": 16,
+        "type": "flat"
+      },
+      {
+        "corner": 17,
+        "type": "flat",
+        "note": "Blanchimont is flat out; low kerbs"
+      }
+    ]
+  },
+  "runoff": {
+    "source": "assumed from 2022 Spa safety works (gravel reinstated at Raidillon, Les Combes, Stavelot; enlarged runoff) and general circuit knowledge. Widths in metres outward from the white line, in order.",
+    "default": [
+      {
+        "surface": "tarmac",
+        "width": 1.5
+      },
+      {
+        "surface": "grass",
+        "width": 14
+      }
+    ],
+    "zones": [
+      {
+        "side": "right",
+        "s0": 180,
+        "s1": 300,
+        "layers": [
+          {
+            "surface": "tarmac",
+            "width": 6
+          }
+        ]
+      },
+      {
+        "side": "left",
+        "s0": 940,
+        "s1": 1070,
+        "layers": [
+          {
+            "surface": "tarmac",
+            "width": 3
+          },
+          {
+            "surface": "gravel",
+            "width": 16
+          }
+        ],
+        "note": "Raidillon outside of T3"
+      },
+      {
+        "side": "right",
+        "s0": 1110,
+        "s1": 1300,
+        "layers": [
+          {
+            "surface": "tarmac",
+            "width": 3
+          },
+          {
+            "surface": "gravel",
+            "width": 26
+          }
+        ],
+        "note": "Raidillon exit (T4), 2022 gravel"
+      },
+      {
+        "side": "left",
+        "s0": 2200,
+        "s1": 2360,
+        "layers": [
+          {
+            "surface": "tarmac",
+            "width": 4
+          },
+          {
+            "surface": "gravel",
+            "width": 28
+          }
+        ],
+        "note": "Les Combes outside, 2022 gravel"
+      },
+      {
+        "side": "right",
+        "s0": 2360,
+        "s1": 2460,
+        "layers": [
+          {
+            "surface": "tarmac",
+            "width": 3
+          },
+          {
+            "surface": "gravel",
+            "width": 18
+          }
+        ]
+      },
+      {
+        "side": "left",
+        "s0": 2490,
+        "s1": 2620,
+        "layers": [
+          {
+            "surface": "tarmac",
+            "width": 3
+          },
+          {
+            "surface": "gravel",
+            "width": 18
+          }
+        ],
+        "note": "Malmedy outside"
+      },
+      {
+        "side": "left",
+        "s0": 2840,
+        "s1": 3010,
+        "layers": [
+          {
+            "surface": "tarmac",
+            "width": 4
+          },
+          {
+            "surface": "gravel",
+            "width": 22
+          }
+        ],
+        "note": "Rivage outside"
+      },
+      {
+        "side": "right",
+        "s0": 3120,
+        "s1": 3260,
+        "layers": [
+          {
+            "surface": "tarmac",
+            "width": 3
+          },
+          {
+            "surface": "gravel",
+            "width": 16
+          }
+        ]
+      },
+      {
+        "side": "right",
+        "s0": 3650,
+        "s1": 4010,
+        "layers": [
+          {
+            "surface": "tarmac",
+            "width": 3
+          },
+          {
+            "surface": "gravel",
+            "width": 32
+          }
+        ],
+        "note": "Pouhon outside"
+      },
+      {
+        "side": "left",
+        "s0": 4380,
+        "s1": 4490,
+        "layers": [
+          {
+            "surface": "tarmac",
+            "width": 3
+          },
+          {
+            "surface": "gravel",
+            "width": 20
+          }
+        ],
+        "note": "Les Fagnes outside"
+      },
+      {
+        "side": "left",
+        "s0": 4970,
+        "s1": 5140,
+        "layers": [
+          {
+            "surface": "tarmac",
+            "width": 3
+          },
+          {
+            "surface": "gravel",
+            "width": 26
+          }
+        ],
+        "note": "Stavelot outside, 2022 gravel"
+      },
+      {
+        "side": "right",
+        "s0": 5660,
+        "s1": 6130,
+        "layers": [
+          {
+            "surface": "tarmac",
+            "width": 8
+          },
+          {
+            "surface": "gravel",
+            "width": 30
+          }
+        ],
+        "note": "Blanchimont outside"
+      },
+      {
+        "side": "left",
+        "s0": 6560,
+        "s1": 6720,
+        "layers": [
+          {
+            "surface": "tarmac",
+            "width": 4
+          }
+        ],
+        "note": "Bus Stop outside (pit entry road beyond)"
+      },
+      {
+        "side": "right",
+        "s0": 6560,
+        "s1": 6720,
+        "layers": [
+          {
+            "surface": "tarmac",
+            "width": 16
+          }
+        ],
+        "note": "Bus Stop inside runoff"
+      },
+      {
+        "side": "left",
+        "s0": 6600,
+        "s1": 330,
+        "layers": [
+          {
+            "surface": "tarmac",
+            "width": 2.0
+          }
+        ],
+        "note": "start/finish straight: pit wall beyond"
+      },
+      {
+        "side": "left",
+        "s0": 330,
+        "s1": 660,
+        "layers": [
+          {
+            "surface": "tarmac",
+            "width": 0.8
+          }
+        ],
+        "note": "pit-exit lane runs alongside beyond the pit-exit line"
+      },
+      {
+        "side": "left",
+        "s0": 150,
+        "s1": 380,
+        "layers": [
+          {
+            "surface": "tarmac",
+            "width": 4
+          }
+        ],
+        "note": "La Source outside (pit-exit road beyond the wall)"
+      }
+    ]
+  },
+  "barriers": {
+    "source": "assumed. Placed at the outer edge of the runoff.",
+    "default": "armco",
+    "zones": [
+      {
+        "side": "left",
+        "s0": 150,
+        "s1": 380,
+        "type": "concrete"
+      },
+      {
+        "side": "left",
+        "s0": 940,
+        "s1": 1070,
+        "type": "tecpro"
+      },
+      {
+        "side": "right",
+        "s0": 1110,
+        "s1": 1300,
+        "type": "tecpro"
+      },
+      {
+        "side": "left",
+        "s0": 2200,
+        "s1": 2360,
+        "type": "tyres"
+      },
+      {
+        "side": "right",
+        "s0": 3650,
+        "s1": 4010,
+        "type": "tyres"
+      },
+      {
+        "side": "right",
+        "s0": 5660,
+        "s1": 6130,
+        "type": "tecpro"
+      },
+      {
+        "side": "left",
+        "s0": 6600,
+        "s1": 330,
+        "type": "pitwall",
+        "note": "concrete pit wall between track and pit lane"
+      },
+      {
+        "side": "right",
+        "s0": 6560,
+        "s1": 6720,
+        "type": "tyres"
+      },
+      {
+        "side": "left",
+        "s0": 330,
+        "s1": 660,
+        "type": "none",
+        "note": "open to the pit-exit lane"
+      }
+    ]
+  },
+  "trackLimits": {
+    "source": "assumed: Turn 4 (Raidillon exit), Turn 9 exit and Turn 19 (Bus Stop exit) are the points most often policed at Spa; replace with the event notes once reachable. Detection lines exist everywhere; only these are enforced.",
+    "enforced": [
+      {
+        "corner": 4,
+        "side": "right",
+        "s0": 1150,
+        "s1": 1270
+      },
+      {
+        "corner": 9,
+        "side": "right",
+        "s0": 3170,
+        "s1": 3260
+      },
+      {
+        "corner": 19,
+        "side": "right",
+        "s0": 6660,
+        "s1": 6730
+      }
+    ]
+  },
+  "camber": {
+    "source": "assumed small banking into corners, strongest through Eau Rouge/Raidillon. The 30 m DEM cannot resolve road crossfall.",
+    "default": 0,
+    "zones": [
+      {
+        "s0": 190,
+        "s1": 320,
+        "deg": 2.0
+      },
+      {
+        "s0": 880,
+        "s1": 945,
+        "deg": -3.0
+      },
+      {
+        "s0": 955,
+        "s1": 1060,
+        "deg": 4.0
+      },
+      {
+        "s0": 1090,
+        "s1": 1190,
+        "deg": -2.0
+      },
+      {
+        "s0": 3660,
+        "s1": 3990,
+        "deg": -2.0
+      },
+      {
+        "s0": 4970,
+        "s1": 5100,
+        "deg": 1.5
+      }
+    ]
+  },
+  "pit": {
+    "source": "assumed geometry (no OSM pit_lane way reachable): entry goes straight on from the left edge before the Bus Stop while the track jogs right, the lane runs left of the start/finish straight, passes around the outside of La Source and runs alongside the left of the descent towards Eau Rouge behind the pit-exit line before merging. Speed limit 80 km/h is the Sporting Regulations default (verify per event).",
+    "entryS": 6520,
+    "laneOffset": 17,
+    "laneWidth": 12,
+    "speedLimitStartS": 6700,
+    "speedLimitEndS": 380,
+    "boxesS0": 6830,
+    "boxesS1": 200,
+    "boxCount": 11,
+    "mergeS": 600,
+    "exitLine": {
+      "side": "left",
+      "s0": 380,
+      "s1": 640
+    },
+    "speedLimitKmh": 80
+  }
+}

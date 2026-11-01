@@ -1,0 +1,8 @@
+html, body { margin: 0; height: 100%; background: #111; color: #eee; font: 13px/1.4 system-ui, sans-serif; overflow: hidden; }
+#app { position: fixed; inset: 0; }
+#hud { position: fixed; top: 10px; left: 10px; background: rgba(10, 12, 16, 0.72); padding: 8px 10px; border-radius: 6px; min-width: 320px; }
+#hud .title { font-weight: 700; letter-spacing: 0.04em; margin-bottom: 4px; }
+#hud label { margin-right: 10px; }
+#hud .keys { opacity: 0.7; margin-top: 4px; font-size: 12px; }
+#hud select { background: #222; color: #eee; border: 1px solid #444; }
+#bench-result, #fatal { position: fixed; bottom: 10px; left: 10px; background: rgba(0,0,0,0.8); padding: 8px; white-space: pre-wrap; }
