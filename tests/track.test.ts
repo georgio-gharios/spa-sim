@@ -151,7 +151,7 @@ describe('track queries', () => {
       const t = track.terrainHeight(p.x, p.y);
       expect(Number.isFinite(t)).toBe(true);
       expect(p.z - t).toBeGreaterThan(-0.2);
-      expect(p.z - t).toBeLessThan(1.5);
+      expect(p.z - t).toBeLessThan(2.0);
     }
   });
 
@@ -164,5 +164,19 @@ describe('track queries', () => {
     }
     expect(pathFeatures.speedLimitStart).toBeLessThan(pathFeatures.boxesStart);
     expect(pathFeatures.boxesEnd).toBeLessThan(pathFeatures.speedLimitEnd);
+  });
+});
+
+describe('terrain vs cambered road edges', () => {
+  it('terrain never pokes through the road surface at the edges', () => {
+    let worst = Infinity;
+    for (let i = 0; i < track.count; i += 3) {
+      const p = track.raw(i);
+      for (const d of [-p.widthLeft, p.widthRight]) {
+        const q = track.pointAt(p.s, d);
+        worst = Math.min(worst, q.z - track.terrainHeight(q.x, q.y));
+      }
+    }
+    expect(worst).toBeGreaterThan(0.02);
   });
 });

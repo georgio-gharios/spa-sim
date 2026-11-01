@@ -4,7 +4,7 @@ export type Side = 'left' | 'right';
 export type Surface = 'tarmac' | 'kerb' | 'grass' | 'gravel' | 'pitlane' | 'wall';
 export type RunoffSurface = 'tarmac' | 'grass' | 'gravel';
 export type KerbType = 'flat' | 'standard' | 'sausage';
-export type BarrierType = 'armco' | 'tyres' | 'tecpro' | 'concrete' | 'pitwall';
+export type BarrierType = 'armco' | 'tyres' | 'tecpro' | 'concrete' | 'pitwall' | 'none';
 
 export interface CornerDef {
   n: number;

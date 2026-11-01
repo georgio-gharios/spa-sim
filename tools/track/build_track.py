@@ -422,7 +422,14 @@ def main() -> None:
     dg, ig = tree_all.query(np.c_[GX.ravel(), GY.ravel()])
     dg = dg.reshape(nyg, nxg)
     ig = ig.reshape(nyg, nxg)
-    road_z = z_all[ig] - 0.25
+    # follow the cambered road plane laterally for main-track nodes (pit lane is flat)
+    gxy = np.c_[GX.ravel(), GY.ravel()].reshape(nyg, nxg, 2)
+    is_main = ig < N
+    im = np.where(is_main, ig, 0)
+    lat_d = (gxy[..., 0] - x[im]) * nx_r[im] + (gxy[..., 1] - y[im]) * ny_r[im]
+    lat_d = np.clip(lat_d, -(wL[im] + 2.0), wR[im] + 2.0)
+    cam_dz = np.where(is_main, -lat_d * np.tan(np.radians(camber[im])), 0.0)
+    road_z = z_all[ig] + cam_dz - 0.55
     inner = corr_all[ig]
     blend = np.clip((dg - inner) / 45.0, 0, 1)
     blend = blend * blend * (3 - 2 * blend)

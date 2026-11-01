@@ -242,18 +242,6 @@
     ],
     "zones": [
       {
-        "side": "left",
-        "s0": 150,
-        "s1": 380,
-        "layers": [
-          {
-            "surface": "tarmac",
-            "width": 4
-          }
-        ],
-        "note": "La Source outside (pit-exit road beyond the wall)"
-      },
-      {
         "side": "right",
         "s0": 180,
         "s1": 300,
@@ -461,6 +449,42 @@
           }
         ],
         "note": "Bus Stop inside runoff"
+      },
+      {
+        "side": "left",
+        "s0": 6600,
+        "s1": 330,
+        "layers": [
+          {
+            "surface": "tarmac",
+            "width": 2.0
+          }
+        ],
+        "note": "start/finish straight: pit wall beyond"
+      },
+      {
+        "side": "left",
+        "s0": 330,
+        "s1": 660,
+        "layers": [
+          {
+            "surface": "tarmac",
+            "width": 0.8
+          }
+        ],
+        "note": "pit-exit lane runs alongside beyond the pit-exit line"
+      },
+      {
+        "side": "left",
+        "s0": 150,
+        "s1": 380,
+        "layers": [
+          {
+            "surface": "tarmac",
+            "width": 4
+          }
+        ],
+        "note": "La Source outside (pit-exit road beyond the wall)"
       }
     ]
   },
@@ -516,6 +540,13 @@
         "s0": 6560,
         "s1": 6720,
         "type": "tyres"
+      },
+      {
+        "side": "left",
+        "s0": 330,
+        "s1": 660,
+        "type": "none",
+        "note": "open to the pit-exit lane"
       }
     ]
   },
