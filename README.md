@@ -5,7 +5,7 @@ browsers. Built with TypeScript, Vite and Three.js, around a generic car built t
 technical regulations. All teams, sponsors, drivers and voices are fictional. The rules authority is
 "Race Control".
 
-**Status:** Phase 2 (2026 car physics + keyboard-drivable prototype) complete. See [`docs/PROGRESS.md`](docs/PROGRESS.md) and [`docs/PLAN.md`](docs/PLAN.md).
+**Status:** Phase 2 (2026 car physics + keyboard-drivable prototype) complete. New session? Start with [`docs/STATUS.md`](docs/STATUS.md). See [`docs/PROGRESS.md`](docs/PROGRESS.md) and [`docs/PLAN.md`](docs/PLAN.md).
 
 ## Run
 
