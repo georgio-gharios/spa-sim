@@ -1,5 +1,39 @@
 # Progress
 
+## Phase 2: Car physics, 2026 regulations (`v0.2-physics`)
+
+### Built
+- `data/cars/car2026.json` (CarSpec), `data/rules/2026.json` (RuleSet), `data/tyres/compounds-2026.json`, `data/physics/{surfaces,environment}.json`, `data/track/zones.json` (active-aero zones and overtake detection), `data/reference/spa-2026-pace.json`. Every real number has a source note.
+- `src/physics/`: CarSpec types; module interfaces and registry (`hybrid-v6-2026`, `es-2026`, `active-aero-2026`, `na-engine`, `fixed-aero`, `standard-assists`); tyre model; `Vehicle` core (4 wheels, load transfer, combined-slip tyres with temperature and wear, compounds, aero with ride height and modes, gearbox with shift times, LSD, engine braking, brakes + brake-by-wire regen, fuel burn, surfaces, wetness hook, grade/camber gravity, vertical compression, suspension heave, barriers).
+- `src/ai/`: racing line v1 (min-curvature, coarse-to-fine), speed profile (axle-aware QSS), scripted driver (path tracker, threshold braking, traction/edge guards). `src/sim/lapRunner.ts`, `tools/sim/{hotlap,trace}.ts`, `tools/sim/compare_pace.py` (sim vs real 2026 pole trace).
+- Keyboard-drivable browser prototype: procedural car (steering, spinning wheels, pitch/roll/heave, moving wing flaps), chase and cockpit cameras, HUD built from the car's capabilities, physics decoupled at 500 Hz.
+- Assists: TC (3 levels), ABS, auto gears, auto clutch, steering assist, auto aero; Pro (all off) and Casual presets. Braking/racing-line visual aids are settings only for now (rendering comes with the HUD work in Phase 4).
+
+### Verified (run 2026-11-01)
+| Acceptance check | Result |
+|---|---|
+| Scripted controller follows the centerline for a full lap without leaving the track | ✅ at 85 % pace: 0 s with all four wheels out, max 2 wheels over, no impacts |
+| Full-pace dry lap in a plausible range (target = real 2026 quali field 103.5–110.2 s; car model's ideal lap must beat pole) | ✅ **1:47.624** (S 30.43 / 47.05 / 30.14; real pole 30.25 / 46.14 / 28.39). Ideal profile lap 1:37.2 |
+| Top speed at the end of Kemmel plausible; battery derating visible in telemetry | ✅ 310 km/h (real 2026 pole: 312) with superclipping; derating flagged when the store runs dry |
+| Unit tests: tyre monotonicity, energy store limits, active-aero state machine | ✅ `tests/physics-units.test.ts` |
+| Second test-only car (no hybrid, fixed wings) runs the headless lap | ✅ `tests/fixtures/cars/test-simple.json` + test RuleSet; capabilities all false |
+| Determinism | ✅ bit-identical state after 3000 steps with the same inputs |
+
+Speed comparison with the real 2026 pole lap (km/h, real / sim): La Source 80/66, Eau Rouge 320/309, Raidillon 301/308, end of Kemmel 312/310, Les Combes 155/142, Malmedy 199/164, Rivage 125/132, Pouhon 267/267, Campus 177/139, Blanchimont 296/290, Bus Stop 77/75.
+
+Test totals: Vitest 38/38, Playwright 2/2 (track fly-around, drive prototype), `tsc` clean.
+
+### Known issues / not yet done
+- **The scripted driver is ~10 s off the car's ideal lap.** Its path tracking oscillates slightly at high speed, and it runs slightly wide at the Bus Stop exit (2 wheels over at full pace). The Phase 8 AI replaces it.
+- Medium-speed corners (Malmedy, Campus, T9) are 10–20 % slower than real, and top speed before Blanchimont is 298 vs 336 km/h (the energy runs out in S3). Calibration is a balance across corners; revisit with tyre/aero refinement and the AI energy strategy.
+- Not modelled yet: the mid-2026 250 kW MGU-K limit outside acceleration zones; brake temperatures; tyre pressure effects (Phase 10 setup); damage (Phase 7); slipstream (Phase 8); collisions between cars (Phase 8, maybe Rapier).
+- Keyboard input is the minimal prototype. Rebinding, gamepads and wheels come in Phase 3. Braking/racing-line overlays are not drawn yet.
+- The phase branch was accidentally pushed to GitHub as `phase-02-physics` and could not be deleted from the session (permission denied); it contains only commits that are also merged here. The owner can delete it.
+
+### Next
+Phase 3: input (keyboard, DualShock 4/DualSense/Xbox pads, wheels; rebinding; hot-plugging).
+
+
 ## Phase 1: Data & track geometry (`v0.1-track`)
 
 ### Built

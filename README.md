@@ -5,17 +5,22 @@ browsers. Built with TypeScript, Vite and Three.js, around a generic car built t
 technical regulations. All teams, sponsors, drivers and voices are fictional. The rules authority is
 "Race Control".
 
-**Status:** Phase 1 (track) complete. See [`docs/PROGRESS.md`](docs/PROGRESS.md) and [`docs/PLAN.md`](docs/PLAN.md).
+**Status:** Phase 2 (2026 car physics + keyboard-drivable prototype) complete. See [`docs/PROGRESS.md`](docs/PROGRESS.md) and [`docs/PLAN.md`](docs/PLAN.md).
 
 ## Run
 
 ```bash
 npm install
-npm run dev            # http://localhost:5173 — track viewer
+npm run dev            # http://localhost:5173 — drive the 2026 car
 ```
 
-URL options: `?quality=low|medium|high|ultra`, `?weather=overcast`, `?bench=1` (one-lap fly-through benchmark).
-Viewer keys: **F** fly-around, **C** free camera (WASD/QE, drag to look, wheel = speed, Shift = fast), **Space** pause.
+**Driving keys (prototype):** W/S or ↑/↓ throttle/brake · A/D or ←/→ steer · E/Q gear up/down (auto in Casual) ·
+X Straight-mode request · O overtake · P pit limiter · R reset car · H Casual/Pro assists · V chase/cockpit camera.
+Viewer: F fly-around · C free camera · Enter back to driving.
+
+Headless lap: `npx tsx tools/sim/hotlap.ts soft` (lap time, sectors, energy).
+
+URL options: `?quality=low|medium|high|ultra`, `?weather=overcast`, `?mode=fly` (start in the fly-around), `?bench=1` (one-lap fly-through benchmark).
 
 ## Test
 
