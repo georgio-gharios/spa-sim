@@ -74,7 +74,8 @@ export interface PitDef {
     exitLineStart: number;
     exitLineEnd: number;
   };
-  path: { x: number[]; y: number[]; z: number[] };
+  /** Pit-lane centre line at ~1 m; w = lane width per point (m). */
+  path: { x: number[]; y: number[]; z: number[]; w?: number[] };
 }
 
 export interface TerrainDef {

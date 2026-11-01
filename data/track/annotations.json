@@ -1,7 +1,7 @@
 {
   "_doc": "Hand-authored track annotations, input to tools/track/build_track.py. Distances s are metres along the centerline from the timing line (s=0), clockwise. 'left'/'right' are relative to the driving direction. camberDeg > 0 means the road surface falls towards the right-hand edge. Every block carries a 'source' note; 'assumed' means no reachable primary source confirmed it (OSM raw ways, orthophotos and telemetry were blocked from the build environment; see docs/PROGRESS.md).",
   "timingLine": {
-    "source": "bacinger/f1-circuits be-1925.geojson first vertex (TUMFTM s=145 m). Assumed to be the timing line; verify with FastF1 Distance=0 when telemetry is available."
+    "source": "bacinger/f1-circuits be-1925.geojson first vertex (TUMFTM s=145 m). Confirmed against the SPW spring-2026 orthophoto: the start/finish gantry and the first grid slots sit at s\u22480."
   },
   "corners": {
     "source": "Positions from curvature peaks of the TUMFTM centerline; numbering and names follow the commonly published Grand Prix circuit map (19 turns). Names are geographic and free to use.",
@@ -428,15 +428,15 @@
       },
       {
         "side": "left",
-        "s0": 6560,
+        "s0": 6540,
         "s1": 6720,
         "layers": [
           {
             "surface": "tarmac",
-            "width": 4
+            "width": 15
           }
         ],
-        "note": "Bus Stop outside (pit entry road beyond)"
+        "note": "Bus Stop outside: painted tarmac runoff (2026 ortho)"
       },
       {
         "side": "right",
@@ -452,27 +452,43 @@
       },
       {
         "side": "left",
-        "s0": 6600,
-        "s1": 330,
+        "s0": 6700,
+        "s1": 150,
         "layers": [
           {
             "surface": "tarmac",
-            "width": 2.0
+            "width": 3
           }
         ],
-        "note": "start/finish straight: pit wall beyond"
+        "note": "start/finish straight, grandstand side (2026 ortho)"
       },
       {
-        "side": "left",
-        "s0": 330,
-        "s1": 660,
+        "side": "right",
+        "s0": 6700,
+        "s1": 150,
+        "layers": [
+          {
+            "surface": "tarmac",
+            "width": 1.5
+          },
+          {
+            "surface": "grass",
+            "width": 4.0
+          }
+        ],
+        "note": "green strip before the pit wall (2026 ortho)"
+      },
+      {
+        "side": "right",
+        "s0": 340,
+        "s1": 540,
         "layers": [
           {
             "surface": "tarmac",
             "width": 0.8
           }
         ],
-        "note": "pit-exit lane runs alongside beyond the pit-exit line"
+        "note": "pit-exit lane alongside beyond the pit-exit line"
       },
       {
         "side": "left",
@@ -481,10 +497,10 @@
         "layers": [
           {
             "surface": "tarmac",
-            "width": 4
+            "width": 30
           }
         ],
-        "note": "La Source outside (pit-exit road beyond the wall)"
+        "note": "La Source outside: large painted tarmac runoff (2026 ortho)"
       }
     ]
   },
@@ -529,22 +545,29 @@
         "type": "tecpro"
       },
       {
-        "side": "left",
-        "s0": 6600,
-        "s1": 330,
-        "type": "pitwall",
-        "note": "concrete pit wall between track and pit lane"
-      },
-      {
         "side": "right",
         "s0": 6560,
         "s1": 6720,
         "type": "tyres"
       },
       {
+        "side": "right",
+        "s0": 6700,
+        "s1": 150,
+        "type": "pitwall",
+        "note": "pit wall (2026 ortho)"
+      },
+      {
         "side": "left",
-        "s0": 330,
-        "s1": 660,
+        "s0": 6700,
+        "s1": 150,
+        "type": "concrete",
+        "note": "main grandstand wall"
+      },
+      {
+        "side": "right",
+        "s0": 340,
+        "s1": 540,
         "type": "none",
         "note": "open to the pit-exit lane"
       }
@@ -574,7 +597,7 @@
     ]
   },
   "camber": {
-    "source": "assumed small banking into corners, strongest through Eau Rouge/Raidillon. The 30 m DEM cannot resolve road crossfall.",
+    "source": "Overridden by SPW LiDAR crossfall when data/raw/wallonia/dtm_samples.json is present (see build_track.py); these assumed values are the fallback.",
     "default": 0,
     "zones": [
       {
@@ -610,21 +633,179 @@
     ]
   },
   "pit": {
-    "source": "assumed geometry (no OSM pit_lane way reachable): entry goes straight on from the left edge before the Bus Stop while the track jogs right, the lane runs left of the start/finish straight, passes around the outside of La Source and runs alongside the left of the descent towards Eau Rouge behind the pit-exit line before merging. Speed limit 80 km/h is the Sporting Regulations default (verify per event).",
-    "entryS": 6520,
-    "laneOffset": 17,
+    "source": "Traced from the SPW ORTHO_2026_PRINTEMPS orthophoto (0.25 m/px): entry leaves the right edge at ~6280 m and runs north on the east side of the Bus Stop, joins the right of the start/finish straight (garages to the right), loops inside La Source and runs alongside the right of the descent behind the pit-exit line, merging ~600 m. Speed limit 80 km/h is the Sporting Regulations default (verify per event).",
+    "entryS": 6250,
+    "laneOffset": 19,
     "laneWidth": 12,
-    "speedLimitStartS": 6700,
-    "speedLimitEndS": 380,
-    "boxesS0": 6830,
-    "boxesS1": 200,
+    "segregatedS0": 6860,
+    "segregatedS1": 150,
+    "speedLimitStartS": 6830,
+    "speedLimitEndS": 360,
+    "boxesS0": 6900,
+    "boxesS1": 110,
     "boxCount": 11,
-    "mergeS": 600,
+    "mergeS": 540,
     "exitLine": {
-      "side": "left",
-      "s0": 380,
-      "s1": 640
+      "side": "right",
+      "s0": 340,
+      "s1": 525
     },
-    "speedLimitKmh": 80
+    "speedLimitKmh": 80,
+    "path": [
+      {
+        "s": 6230,
+        "edge": -1.5,
+        "w": 7
+      },
+      {
+        "s": 6270,
+        "edge": 2.5,
+        "w": 7
+      },
+      {
+        "x": 146,
+        "y": -585,
+        "w": 7
+      },
+      {
+        "x": 151,
+        "y": -560,
+        "w": 7
+      },
+      {
+        "x": 151,
+        "y": -520,
+        "w": 7
+      },
+      {
+        "x": 151,
+        "y": -480,
+        "w": 7
+      },
+      {
+        "x": 156,
+        "y": -440,
+        "w": 7
+      },
+      {
+        "x": 163,
+        "y": -405,
+        "w": 7
+      },
+      {
+        "x": 168,
+        "y": -380,
+        "w": 7
+      },
+      {
+        "x": 172,
+        "y": -345,
+        "w": 7
+      },
+      {
+        "x": 176,
+        "y": -315,
+        "w": 7
+      },
+      {
+        "x": 180,
+        "y": -292,
+        "w": 7
+      },
+      {
+        "x": 178,
+        "y": -268,
+        "w": 8
+      },
+      {
+        "x": 170,
+        "y": -243,
+        "w": 9
+      },
+      {
+        "x": 158,
+        "y": -222,
+        "w": 10
+      },
+      {
+        "x": 138,
+        "y": -196,
+        "w": 12
+      },
+      {
+        "x": 116,
+        "y": -166,
+        "w": 15
+      },
+      {
+        "s": 6840,
+        "sEnd": 7100,
+        "step": 30,
+        "d": 19,
+        "w": 12
+      },
+      {
+        "x": -48,
+        "y": 116,
+        "w": 12
+      },
+      {
+        "x": -58,
+        "y": 137,
+        "w": 9
+      },
+      {
+        "x": -67,
+        "y": 156,
+        "w": 8
+      },
+      {
+        "x": -73,
+        "y": 172,
+        "w": 8
+      },
+      {
+        "x": -72,
+        "y": 185,
+        "w": 8
+      },
+      {
+        "x": -64,
+        "y": 192,
+        "w": 8
+      },
+      {
+        "x": -50,
+        "y": 191,
+        "w": 8
+      },
+      {
+        "x": -30,
+        "y": 186,
+        "w": 7
+      },
+      {
+        "s": 360,
+        "sEnd": 450,
+        "step": 30,
+        "edge": 4.0,
+        "w": 7
+      },
+      {
+        "s": 490,
+        "edge": 2.5,
+        "w": 6
+      },
+      {
+        "s": 520,
+        "edge": 0.5,
+        "w": 5
+      },
+      {
+        "s": 550,
+        "edge": -2.0,
+        "w": 5
+      }
+    ]
   }
 }

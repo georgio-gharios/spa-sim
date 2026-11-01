@@ -332,14 +332,19 @@ function pitBuilding(track: TrackModel, wm: WorldMap, parent: Group): void {
   const roof = new MeshStandardMaterial({ color: 0x7f868c, roughness: 0.8 });
   const a = pathFeatures.boxesStart - 25;
   const b = pathFeatures.boxesEnd + 25;
+  // garages go on the side of the lane away from the track
+  const pm = at((pathFeatures.boxesStart + pathFeatures.boxesEnd) / 2);
+  const tp = track.pointAt(track.project(pm.x, pm.y).s, 0);
+  const awayRight = (tp.x - pm.x) * -Math.sin(pm.heading) + (tp.y - pm.y) * Math.cos(pm.heading) > 0; // track on the left
+  const side = awayRight ? 1 : -1;
+  const halfW = (i: number) => (path.w?.[Math.round(i)] ?? laneWidth) / 2;
   const depth = 22;
   const segLen = 20;
   for (let i = a; i < b; i += segLen) {
     const p = at(i + segLen / 2);
-    // left of the lane (away from the track)
-    const lx = -Math.sin(p.heading);
-    const ly = Math.cos(p.heading);
-    const off = laneWidth / 2 + 1 + depth / 2;
+    const lx = side * Math.sin(p.heading);
+    const ly = -side * Math.cos(p.heading);
+    const off = halfW(i + segLen / 2) + 1 + depth / 2;
     const cx = p.x + lx * off;
     const cy = p.y + ly * off;
     placeBox(parent, wall, wm, cx, cy, p.z - 0.5, p.heading, segLen + 0.2, depth, 5.5);
@@ -350,10 +355,11 @@ function pitBuilding(track: TrackModel, wm: WorldMap, parent: Group): void {
   // garage doors with team colours, one garage per team
   const per = (pathFeatures.boxesEnd - pathFeatures.boxesStart) / boxCount;
   for (let k = 0; k < boxCount; k++) {
-    const p = at(pathFeatures.boxesStart + per * (k + 0.5));
-    const lx = -Math.sin(p.heading);
-    const ly = Math.cos(p.heading);
-    const off = laneWidth / 2 + 1 + 0.15;
+    const ik = pathFeatures.boxesStart + per * (k + 0.5);
+    const p = at(ik);
+    const lx = side * Math.sin(p.heading);
+    const ly = -side * Math.cos(p.heading);
+    const off = halfW(ik) + 1 + 0.15;
     const mat = new MeshStandardMaterial({ color: TEAM_COLOURS[k % TEAM_COLOURS.length]!, roughness: 0.5 });
     placeBox(parent, mat, wm, p.x + lx * off, p.y + ly * off, p.z, p.heading, per * 0.8, 0.3, 4.2, false);
   }
@@ -471,10 +477,10 @@ export function buildStructures(track: TrackModel, wm: WorldMap): Group {
   };
   mats.seats.side = DoubleSide;
   pitBuilding(track, wm, group);
-  // main grandstand opposite the pits, La Source, Raidillon, Pouhon, Blanchimont, Bus Stop (all generic)
-  grandstand(track, wm, group, track.length - 240, track.length - 20, 'right', 16, mats);
-  grandstand(track, wm, group, 150, 230, 'left', 10, mats);
-  grandstand(track, wm, group, 820, 900, 'left', 12, mats);
+  // positions follow the spring-2026 orthophoto: main stand opposite the pits, stands on the run to Eau Rouge
+  grandstand(track, wm, group, track.length - 150, track.length - 20, 'left', 14, mats);
+  grandstand(track, wm, group, 470, 560, 'left', 10, mats);
+  grandstand(track, wm, group, 590, 690, 'left', 14, mats);
   grandstand(track, wm, group, 3700, 3800, 'right', 9, mats);
   grandstand(track, wm, group, 6150, 6230, 'right', 8, mats);
   marshalPosts(track, wm, group);

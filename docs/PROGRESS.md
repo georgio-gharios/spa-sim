@@ -15,14 +15,15 @@
 |---|---|
 | Fly-around of the full lap with no gaps or seams | ✅ `tests/render-geometry.test.ts`: the road is one closed manifold ribbon (exactly 2N boundary edges, 0 non-manifold, 0 degenerate) with all faces up. `e2e/track.spec.ts` flies the whole lap in 50 m steps in Chromium with no errors and checks each frame is non-blank. Screenshots in `docs/screens/`. |
 | Centerline length within ±0.5 % of 7.004 km | ✅ 6999.2 m (−0.07 %), measured independently in `tests/track.test.ts` |
-| Elevation plot matching the real profile | ✅ `docs/elevation-profile.png`: drop to Eau Rouge (387 m), climb up Raidillon and Kemmel to Les Combes (467 m), long descent through Pouhon to Stavelot (364 m), climb back via Blanchimont. Δ 102.7 m vs ≈102 m published. The shape is asserted in tests. |
+| Elevation plot matching the real profile | ✅ `docs/elevation-profile.png`, now from the **SPW LiDAR DTM 2021-22 (50 cm)**: drop to Eau Rouge, climb up Raidillon (peak grade 15.5 %) and Kemmel to Les Combes (468.8 m), long descent through Pouhon to Stavelot (366.6 m), climb back via Blanchimont. **Δ 102.3 m** vs ≈102 m published. Copernicus GLO-30 differs by 2.8 m RMS (datum offset −2.4 m). |
 | Overlay of centerline vs telemetry, max deviation documented | ⚠️ **Partial.** FastF1 telemetry is blocked (needs an F1 account). Done instead: overlay vs an independent OSM trace (bacinger), RMS 1.14 m, p95 2.09 m, **max 5.66 m at La Source** (`docs/centerline-overlay.png`). The telemetry overlay tool is ready and self-tested. |
 
 Test totals: Vitest 17/17, Playwright 1/1, `tsc --noEmit` clean.
 
 ### Known issues and assumptions (not stubs, but unverified)
-- **Assumed, not verified from primary sources:** kerb positions and types, runoff surfaces and widths, barrier types, enforced track-limit corners (T4, T9, T19), sector boundaries, timing-line position, camber values, and the whole pit-lane geometry. Each is marked "assumed" in `annotations.json`.
-- Elevation comes from a 30 m surface model. Raidillon's peak grade is 15 % (published ~17–18 %), and the short-wavelength profile is smoothed. Forested terrain away from the track still includes some canopy height.
+- **Now from primary sources (2026-11-01 update):** road elevation and banking (SPW LiDAR 50 cm, sampled every 2 m at centre and both edges); **pit lane re-traced from the SPW spring-2026 orthophoto**. It is on the RIGHT of the start/finish straight (the first version had it mirrored on the left): entry at ~6280 m east of the Bus Stop, loop inside La Source, exit merging ~540 m. Main grandstand moved to the left; stands added on the run to Eau Rouge. Timing line confirmed (gantry + grid at s ≈ 0).
+- **Still assumed:** kerb positions and types, most runoff surfaces and widths, barrier types, enforced track-limit corners (T4, T9, T19), sector boundaries. They can now be checked corner by corner against the 2026 orthophoto (next track pass).
+- Terrain away from the track still comes from the 30 m surface model (shifted onto the LiDAR datum), so forested areas include some canopy height.
 - Corner names for T9, T14 and T16 are best-knowledge; numbering should be checked against the official 2026 map.
 - **Performance (target laptop, owner-run, 2026-11-01):**
   - First build, High preset, browser on the Intel iGPU: avg 20.4 fps (p50 41.7 ms).
@@ -32,8 +33,8 @@ Test totals: Vitest 17/17, Playwright 1/1, `tsc --noEmit` clean.
 - Trees have no LOD yet, and there are no grid-slot markings or crowd animation (planned for Phases 4 and 11).
 
 ### Blocked / owner actions
-1. **Network allow-list** (cloud environment settings → Network access → Allowed domains): `overpass-api.de` (raw OSM ways: pit lane, gravel/grass areas) and `geoservices.wallonie.be` / `geoportail.wallonie.be` (1 m LiDAR DTM + orthophotos for kerbs/runoff). Alternatively, download them and drop the files into `data/raw/`.
-2. **FastF1 telemetry:** either add `F1_USERNAME` / `F1_PASSWORD` as environment secrets (the data stays out of git), or run `python tools/telemetry/export_fastf1.py --year 2026` locally and upload the CSVs. Then `python -I tools/track/telemetry_overlay.py data/raw/telemetry/spa_2026_Q_*.csv` closes the last acceptance item. It also pins the timing line, sector boundaries and the lap-time target for Phase 2.
+1. ~~Network allow-list~~: Wallonia now works (LiDAR + 2026 orthophotos used). `overpass-api.de` connects but the connection closes after a few bytes every time, so OSM raw ways are still unavailable. The orthophotos cover the need.
+2. **FastF1 telemetry (needs an F1 TV subscription):** the owner is adding `F1_USERNAME` / `F1_PASSWORD` as environment variables plus the F1 domains; a new session then runs `docs/TELEMETRY.md`. That closes the last acceptance item and pins the sector boundaries and lap-time target.
 
 ### Next
 Phase 2: car physics (2026 regulations), the modular `CarSpec` architecture, and a keyboard-drivable prototype.

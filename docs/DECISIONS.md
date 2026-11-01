@@ -39,3 +39,10 @@ One line per decision: **what** — *why*.
 - `preserveDrawingBuffer` is only on with `?static=1` (tests/screenshots). — *It forces a buffer copy every frame.*
 - The benchmark reports the GPU renderer string and CPU frame time. — *Hybrid-graphics laptops often run browsers on the iGPU; the numbers must show which GPU was measured.*
 - The frame-rate target is judged at the display's vsync cap; Ultra already holds 144 Hz on the RTX 5060 for the track scene. — *Browsers cap rAF at the refresh rate; uncapped headroom would need Firefox `layout.frame_rate=0` or Chrome `--disable-gpu-vsync`.*
+
+## Track data v2 (Wallonia sources)
+- Road elevation and banking come from the SPW LiDAR DTM 2021-2022 (50 cm, bare earth), queried with the MapServer `identify` endpoint every 2 m at the centre, the half-widths and both edges (17,500 points, 6 parallel requests). — *The service only renders images; identify returns real heights. This replaces the 30 m surface model on the road (2.8 m RMS difference).*
+- Heights are in the Belgian datum (DNG/TAW). The coarse terrain DEM is shifted by the median road difference so they match. — *Consistency between road and terrain matters more than the absolute datum.*
+- Banking = atan((z_left_edge − z_right_edge) / span), smoothed over 8 m and clamped to ±8°. Annotation camber values are only a fallback. — *Measured; it agrees with the earlier guesses to within ~1°.*
+- Pit lane geometry is traced by hand from the SPW ORTHO_2026_PRINTEMPS orthophoto (0.25 m/px) as control points (world x/y or s/offset/edge) joined with a Catmull-Rom spline, with a per-point lane width. — *OSM is unreachable; the photo shows the 2026 state. The first version (lane on the left) was a wrong inference from geometry alone.*
+- The SPW web-service conditions allow free access with the source credited; raw downloads stay in data/raw/. — *Read from LicServicesSPW.pdf; the dataset's own licence record is on a blocked host (metawal.wallonie.be). Verify before any public release.*

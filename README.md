@@ -37,6 +37,8 @@ npm run track:fetch && npm run track:build
   and bacinger/f1-circuits (MIT). The derived track data in `data/track/` is made available under the ODbL.
 - Elevation: Copernicus GLO-30 DEM. © DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH
   2014–2018, provided under COPERNICUS by the European Union and ESA.
+- Road elevation, banking and the pit-lane trace: © SPW (Service public de Wallonie), LiDAR MNT 2021-2022 and
+  2026 orthophotos via geoservices.wallonie.be.
 - Kerbs, runoff, barriers and the pit lane are hand-annotated (`data/track/annotations.json`). Each
   entry carries a source note, and unverified entries are marked "assumed".
 - All textures are procedurally generated. Sponsor names are invented.

@@ -411,10 +411,9 @@ export function buildPitLane(track: TrackModel, wm: WorldMap): { surface: GeoBui
   const surface = new GeoBuilder();
   const lines = new GeoBuilder();
   const n = path.x.length;
-  const half = laneWidth / 2;
   const at = (i: number) => {
     const j = Math.max(0, Math.min(n - 1, i));
-    return { x: path.x[j]!, y: path.y[j]!, z: path.z[j]! };
+    return { x: path.x[j]!, y: path.y[j]!, z: path.z[j]!, half: (path.w?.[j] ?? laneWidth) / 2 };
   };
   const dir = (i: number) => {
     const a = at(i - 1);
@@ -422,29 +421,40 @@ export function buildPitLane(track: TrackModel, wm: WorldMap): { surface: GeoBui
     const l = Math.hypot(b.x - a.x, b.y - a.y) || 1;
     return { hx: (b.x - a.x) / l, hy: (b.y - a.y) / l };
   };
-  const strip = (g: GeoBuilder, i0: number, i1: number, d0: number, d1: number, lift: number) => {
+  /** Sweep between lateral offsets d0(i)..d1(i) (positive = right of the lane direction). */
+  const strip = (g: GeoBuilder, i0: number, i1: number, d0: (i: number) => number, d1: (i: number) => number, lift: number) => {
     let prev: [number, number] | null = null;
-    for (let i = i0; i <= i1; i++) {
+    for (let i = Math.max(0, i0); i <= Math.min(n - 1, i1); i++) {
       const p = at(i);
       const { hx, hy } = dir(i);
       const rx = hy;
       const ry = -hx;
-      const a = g.vertex(p.x + rx * d0, p.y + ry * d0, p.z + lift, i / 6, 0, wm);
-      const b = g.vertex(p.x + rx * d1, p.y + ry * d1, p.z + lift, i / 6, 1, wm);
+      const a = g.vertex(p.x + rx * d0(i), p.y + ry * d0(i), p.z + lift, i / 6, 0, wm);
+      const b = g.vertex(p.x + rx * d1(i), p.y + ry * d1(i), p.z + lift, i / 6, 1, wm);
       if (prev) g.quad(prev[0], prev[1], a, b);
       prev = [a, b];
     }
   };
-  // the lane starts on the track edge and ends merging with it: taper the width at both ends
-  strip(surface, 0, n - 1, -half, half, -0.015);
-  // fast-lane / working-lane divider (dashed), and solid edge lines
-  for (let i = Math.round(pathFeatures.speedLimitStart); i < pathFeatures.speedLimitEnd; i += 6) strip(lines, i, i + 3, -0.6, -0.45, 0.0);
-  strip(lines, 0, n - 1, half - 0.2, half, 0.0);
-  strip(lines, 0, n - 1, -half, -half + 0.2, 0.0);
+  const h = (i: number) => at(i).half;
+  strip(surface, 0, n - 1, (i) => -h(i), h, -0.015);
+  // solid edge lines
+  strip(lines, 0, n - 1, (i) => h(i) - 0.2, h, 0.0);
+  strip(lines, 0, n - 1, (i) => -h(i), (i) => -h(i) + 0.2, 0.0);
+  // which side of the lane faces the track along the pit-exit line?
+  const mid = at(Math.round((pathFeatures.exitLineStart + pathFeatures.exitLineEnd) / 2));
+  const md = dir(Math.round((pathFeatures.exitLineStart + pathFeatures.exitLineEnd) / 2));
+  const tp = track.project(mid.x, mid.y);
+  const tq = track.pointAt(tp.s, 0);
+  const trackOnRight = (tq.x - mid.x) * md.hy - (tq.y - mid.y) * md.hx > 0;
+  const sgn = trackOnRight ? 1 : -1;
   // pit-exit line: solid, on the track side of the lane
-  strip(lines, Math.round(pathFeatures.exitLineStart), Math.round(pathFeatures.exitLineEnd), half + 0.0, half + 0.3, 0.0);
+  strip(lines, Math.round(pathFeatures.exitLineStart), Math.round(pathFeatures.exitLineEnd), (i) => (sgn > 0 ? h(i) : -h(i) - 0.3), (i) => (sgn > 0 ? h(i) + 0.3 : -h(i)), 0.0);
+  // fast lane / working lane divider (dashed) on the side away from the track, between the boxes
+  for (let i = Math.round(pathFeatures.boxesStart); i < pathFeatures.boxesEnd; i += 6) {
+    strip(lines, i, i + 3, () => -sgn * 0.6 - 0.075, () => -sgn * 0.6 + 0.075, 0.0);
+  }
   // speed-limit lines across the lane
-  for (const f of [pathFeatures.speedLimitStart, pathFeatures.speedLimitEnd]) strip(lines, Math.round(f), Math.round(f) + 1, -half, half, 0.0);
+  for (const f of [pathFeatures.speedLimitStart, pathFeatures.speedLimitEnd]) strip(lines, Math.round(f), Math.round(f) + 1, (i) => -h(i), h, 0.0);
   return { surface, lines };
 }
 

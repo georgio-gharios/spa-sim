@@ -269,7 +269,26 @@ def main() -> None:
     resid = z_lo - base
     # structures and trees only ever ADD height: cap positive residuals, keep dips (Eau Rouge) intact
     z_c = base + np.minimum(resid, 1.0)
-    z = gaussian_filter1d(z_c, sigma=12 / ds, mode="wrap")
+    z_glo = gaussian_filter1d(z_c, sigma=12 / ds, mode="wrap")
+    z = z_glo
+    lidar = RAW / "wallonia" / "dtm_samples.json"
+    lidar_camber = None
+    z_datum = "metres above sea level (EGM2008, Copernicus GLO-30)"
+    if lidar.exists():
+        # SPW LiDAR DTM 2021-2022 (50 cm, bare earth) sampled every ~2 m at centre and both edges
+        smp = json.loads(lidar.read_text())
+        ids = sorted({int(k.split(":")[0]) for k in smp})
+        g = lambda t: np.array([smp[f"{i}:{t}"] for i in ids], dtype=float)  # noqa: E731
+        zc, zl, zr = g("c"), g("L"), g("R")
+        si = np.array(ids, dtype=float) * ds
+        per = lambda v: np.interp(s_out, np.r_[si, L], np.r_[v, v[0]])  # noqa: E731
+        z = gaussian_filter1d(per(zc), sigma=3 / ds, mode="wrap")
+        span = np.maximum(wL + wR - 0.8, 3.0)
+        lidar_camber = np.degrees(np.arctan((per(zl) - per(zr)) / span))  # > 0: right edge lower
+        lidar_camber = gaussian_filter1d(lidar_camber, sigma=8 / ds, mode="wrap")
+        z_datum = "metres, Belgian height datum (DNG/TAW) from SPW LiDAR DTM 2021-2022"
+        log(f"LiDAR elevation: GLO-30 minus LiDAR mean {np.mean(z_glo - z):.2f} m, rms {np.sqrt(np.mean((z_glo - z) ** 2)):.2f} m")
+    dem_offset = float(np.median(z - z_glo))  # shift the coarse terrain DEM onto the road datum
     grade = np.gradient(z, ds)
     log(f"elevation min={z.min():.1f} max={z.max():.1f} delta={z.max() - z.min():.1f} m; max grade {grade.max()*100:.1f}% / {grade.min()*100:.1f}%")
 
@@ -282,6 +301,8 @@ def main() -> None:
         m = in_range(s_out, zn["s0"], zn["s1"], L)
         camber[m] = zn["deg"]
     camber = gaussian_filter1d(camber, sigma=12 / ds, mode="wrap")  # smooth transitions
+    if lidar_camber is not None:
+        camber = np.clip(lidar_camber, -8, 8)
 
     corners = ann["corners"]["list"]
     kd = ann["kerbs"]["defaults"]
@@ -315,37 +336,37 @@ def main() -> None:
     def idx(s):
         return int(round(wrap(s, L) / ds)) % N
 
-    # The lane leaves the left edge before the Bus Stop and runs straight on while the track jogs right
-    # through the chicane, follows the left of the start/finish straight, passes around the outside of
-    # La Source and runs alongside the left of the descent before merging (pit-exit line on the left).
+    # Control points (annotations.pit.path): {"s", "d"} relative to the centerline (d > 0 right) or
+    # {"x", "y"} in the world frame; joined with a centripetal Catmull-Rom spline.
+    ctrl = []
+    ctrl_w = []
+    for cp in pit["path"]:
+        w_cp = cp.get("w", pit["laneWidth"])
+        if "s" in cp:
+            ss = np.arange(cp["s"], cp["sEnd"] + 1e-6, cp["step"]) if "step" in cp else [cp["s"]]
+            for s_ in ss:
+                # "edge": metres beyond the right edge (lane centre), "d": offset from the centerline
+                d_ = wR[idx(s_)] + cp["edge"] if "edge" in cp else cp["d"]
+                ctrl.append(pt(s_, d_))
+                ctrl_w.append(w_cp)
+        else:
+            ctrl.append(np.array([cp["x"], cp["y"]], dtype=float))
+            ctrl_w.append(w_cp)
     e_s = pit["entryS"]
-    off = -pit["laneOffset"]
-    ctrl = [pt(e_s - 40, -(wL[idx(e_s - 40)] - 2.0)), pt(e_s, -(wL[idx(e_s)] + 1.0)), pt(e_s + 40, -(wL[idx(e_s + 40)] + 5.0))]
-    a_pt = pt(e_s + 80, -(wL[idx(e_s + 80)] + 7.0))
-    b_pt = pt(6800, off)
-    for f in np.linspace(0, 1, 6)[:-1]:
-        ctrl.append((1 - f) * a_pt + f * b_pt)
-    for s_ in np.arange(6800, L + 390, 30):
-        # widen around the outside of La Source (hairpin) so the lane clears the track edge
-        sm = s_ - L
-        f = np.clip(min((sm - 120) / 60, (390 - sm) / 40), 0, 1) if sm > 0 else 0.0
-        ctrl.append(pt(s_, off - 5.0 * f))
-    m_s = pit["mergeS"]
-    for s_ in np.arange(420, m_s + 61, 30):
-        f = np.clip((s_ - 420) / (m_s + 60 - 420), 0, 1)
-        f = f * f * (3 - 2 * f)
-        target = -(wL[idx(s_)] - 1.5)
-        ctrl.append(pt(s_, (1 - f) * off + f * target))
+    off = pit["laneOffset"]
     pit_xy = resample_polyline(catmull_rom(np.array(ctrl), 2.0), 1.0)
+    # per-point lane width: nearest control point along the path, smoothed
+    _, cw_i = cKDTree(np.array(ctrl)).query(pit_xy)
+    pit_w = gaussian_filter1d(np.array(ctrl_w, dtype=float)[cw_i], 6)
 
     # pit-lane clearance from the racing surface (excluding the entry/merge ends)
     tree_c = cKDTree(np.c_[x, y])
     dist_c, near = tree_c.query(pit_xy)
     half = np.maximum(wL, wR)[near]
-    clearance = dist_c - half - pit["laneWidth"] / 2
+    clearance = dist_c - half - pit_w / 2
     # segregated section: from the end of the entry split to the start of the exit run-alongside
-    _, k0 = cKDTree(pit_xy).query(pt(e_s + 90, off))
-    _, k1 = cKDTree(pit_xy).query(pt(330, off))
+    _, k0 = cKDTree(pit_xy).query(pt(pit["segregatedS0"], off))
+    _, k1 = cKDTree(pit_xy).query(pt(pit["segregatedS1"], off))
     core = slice(int(k0), int(k1))
     log(f"pit lane length {len(pit_xy)} m; min clearance in core section {clearance[core].min():.2f} m")
 
@@ -383,7 +404,7 @@ def main() -> None:
     glo, gla = to_ll.transform(GX.ravel(), GY.ravel())
     terr = dem.sample(np.asarray(glo), np.asarray(gla)).reshape(nyg, nxg)
     terr = grey_opening(terr, size=(7, 7))  # suppress forest canopy (DSM -> DTM-ish)
-    terr = gaussian_filter(terr, 1.2)
+    terr = gaussian_filter(terr, 1.2) + dem_offset
 
     # flatten the corridor under the road, runoff and pit lane
     def runoff_total(side: str) -> np.ndarray:
@@ -397,7 +418,7 @@ def main() -> None:
     corr = np.maximum(wL + runoff_total("left"), wR + runoff_total("right")) + 3.0
     pts_all = np.vstack([np.c_[x, y], pit_xy])
     z_all = np.r_[z, z_pit]
-    corr_all = np.r_[corr, np.full(len(pit_xy), pit["laneWidth"] / 2 + 25.0)]
+    corr_all = np.r_[corr, pit_w / 2 + 25.0]
     tree_all = cKDTree(pts_all)
     dg, ig = tree_all.query(np.c_[GX.ravel(), GY.ravel()])
     dg = dg.reshape(nyg, nxg)
@@ -429,11 +450,12 @@ def main() -> None:
         "sources": {
             "centerline": "TUMFTM racetrack-database Spa.csv (LGPL-3.0; OSM-derived, (c) OpenStreetMap contributors, ODbL)",
             "georeference": "bacinger/f1-circuits be-1925.geojson (MIT; OSM-derived)",
+            "elevationRoad": "SPW (Service public de Wallonie) Relief de la Wallonie - MNT 2021-2022 LiDAR 50 cm, geoservices.wallonie.be (if data/raw/wallonia present)",
             "elevation": "Copernicus GLO-30 DEM (c) DLR e.V. 2010-2014 and (c) Airbus Defence and Space GmbH 2014-2018, provided under COPERNICUS by the European Union and ESA",
             "annotations": "data/track/annotations.json (see per-block source notes)",
         },
         "frame": {
-            "description": "local azimuthal-equidistant tangent plane at the timing line; x east, y north, z metres ASL (EGM2008)",
+            "description": "local azimuthal-equidistant tangent plane at the timing line; x east, y north, z " + z_datum,
             "originLat": round(lat_o, 8),
             "originLon": round(lon_o, 8),
         },
@@ -456,9 +478,9 @@ def main() -> None:
         "barriers": ann["barriers"],
         "trackLimits": ann["trackLimits"]["enforced"],
         "pit": {
-            **{k: v for k, v in pit.items() if k != "source"},
+            **{k: v for k, v in pit.items() if k not in ("source", "path")},
             "pathFeatures": pit_features,
-            "path": {"x": r3(pit_xy[:, 0]), "y": r3(pit_xy[:, 1]), "z": r3(z_pit)},
+            "path": {"x": r3(pit_xy[:, 0]), "y": r3(pit_xy[:, 1]), "z": r3(z_pit), "w": r3(pit_w)},
         },
         "terrain": {"file": "terrain.bin", "x0": gx0, "y0": gy0, "cell": cell, "nx": nxg, "ny": nyg},
     }
@@ -498,9 +520,8 @@ def main() -> None:
 
     DOCS.mkdir(exist_ok=True)
     fig, ax = plt.subplots(figsize=(14, 5), dpi=120)
-    ax.plot(s_out / 1000, z_raw, color="#bbbbbb", lw=0.6, label="GLO-30 raw (min across road)")
-    ax.plot(s_out / 1000, z_lo, color="#e0a03a", lw=0.6, alpha=0.7, label="20th-pct filtered")
-    ax.plot(s_out / 1000, z, color="#1f5fa8", lw=2, label="processed elevation")
+    ax.plot(s_out / 1000, z_glo + dem_offset, color="#e0a03a", lw=1, label=f"Copernicus GLO-30 (30 m), shifted {dem_offset:+.1f} m")
+    ax.plot(s_out / 1000, z, color="#1f5fa8", lw=2, label="SPW LiDAR DTM 2021-22 (50 cm)" if lidar_camber is not None else "processed elevation")
     for c in corners:
         i = idx(c["apex"])
         ax.annotate(f'T{c["n"]}', (s_out[i] / 1000, z[i]), textcoords="offset points", xytext=(0, 10),
