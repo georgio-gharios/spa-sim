@@ -1,5 +1,6 @@
 import { ACESFilmicToneMapping, PerspectiveCamera, Scene, SRGBColorSpace, WebGLRenderer, type Group } from 'three';
 import type { TrackModel } from '../track/TrackModel';
+import type { DriveController } from './DriveController';
 import { FlyAround } from './cameras/FlyAround';
 import { FreeCamera } from './cameras/FreeCamera';
 import { LightingRig, type WeatherPreset } from './lighting';
@@ -8,7 +9,7 @@ import { buildForest, buildStructures, buildTerrain } from './scenery';
 import type { WorldMap } from './track/geometry';
 import { buildTrackScene } from './track/trackScene';
 
-export type CameraMode = 'fly-around' | 'free';
+export type CameraMode = 'fly-around' | 'free' | 'drive';
 
 export interface FrameStats {
   fps: number;
@@ -35,6 +36,7 @@ export class TrackViewer {
   private frameTimes: number[] = [];
   private stats: FrameStats = { fps: 0, frameMs: 0, drawCalls: 0, triangles: 0 };
   onFrame: ((v: TrackViewer) => void) | null = null;
+  drive: DriveController | null = null;
   /** Smoothed CPU time spent submitting a frame (scene traversal + WebGL calls), ms. */
   cpuMs = 0;
 
@@ -104,6 +106,11 @@ export class TrackViewer {
   setMode(m: CameraMode): void {
     this.mode = m;
     this.free.enabled = m === 'free';
+    if (m !== 'drive') {
+      this.camera.fov = 60;
+      this.camera.near = 0.1;
+      this.camera.updateProjectionMatrix();
+    }
     if (m === 'fly-around') {
       // continue from the nearest point on the lap
       const p = this.track.project(this.camera.position.x, -this.camera.position.z);
@@ -151,6 +158,7 @@ export class TrackViewer {
     this.last = now;
     if (!this.paused) {
       if (this.mode === 'fly-around') this.fly.update(dt);
+      else if (this.mode === 'drive' && this.drive) this.drive.update(dt, this.camera);
       else this.free.update(dt);
     }
     const t0 = performance.now();

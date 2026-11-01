@@ -6,3 +6,33 @@ html, body { margin: 0; height: 100%; background: #111; color: #eee; font: 13px/
 #hud .keys { opacity: 0.7; margin-top: 4px; font-size: 12px; }
 #hud select { background: #222; color: #eee; border: 1px solid #444; }
 #bench-result, #fatal { position: fixed; bottom: 10px; left: 10px; background: rgba(0,0,0,0.8); padding: 8px; white-space: pre-wrap; }
+#drive-hud { position: fixed; inset: auto 0 0 0; height: 150px; pointer-events: none; font-family: system-ui, sans-serif; color: #fff; text-shadow: 0 1px 2px #000; }
+#drive-hud .dh-center { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); text-align: center; background: rgba(8,10,14,0.65); padding: 6px 18px 10px; border-radius: 10px; min-width: 210px; }
+#drive-hud .dh-speed span { font-size: 44px; font-weight: 800; font-variant-numeric: tabular-nums; }
+#drive-hud .dh-speed small { margin-left: 4px; opacity: 0.7; }
+#drive-hud .dh-gear { position: absolute; right: -54px; bottom: 10px; width: 46px; height: 58px; line-height: 58px; font-size: 40px; font-weight: 800; background: rgba(8,10,14,0.65); border-radius: 8px; }
+#drive-hud .dh-lights { display: flex; gap: 4px; justify-content: center; margin-bottom: 4px; }
+#drive-hud .dh-lights i { width: 14px; height: 8px; border-radius: 2px; background: #333; }
+#drive-hud .dh-lights i.on:nth-child(-n+4) { background: #3ccf4e; }
+#drive-hud .dh-lights i.on:nth-child(n+5):nth-child(-n+8) { background: #e8423a; }
+#drive-hud .dh-lights i.on:nth-child(n+9) { background: #6b62ff; }
+#drive-hud .dh-pedals { position: absolute; left: -38px; bottom: 10px; display: flex; gap: 4px; height: 58px; }
+#drive-hud .dh-pedals div { width: 12px; height: 100%; background: #222; position: relative; border-radius: 3px; overflow: hidden; }
+#drive-hud .dh-pedals b { position: absolute; bottom: 0; left: 0; right: 0; }
+#drive-hud .dh-pedals div:first-child b { background: #3ccf4e; }
+#drive-hud .dh-pedals div:last-child b { background: #e8423a; }
+#drive-hud .dh-left { position: absolute; left: 14px; bottom: 14px; background: rgba(8,10,14,0.65); padding: 8px 12px; border-radius: 8px; }
+#drive-hud .dh-lap span { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+#drive-hud .dh-lap small { display: block; opacity: 0.75; font-variant-numeric: tabular-nums; }
+#drive-hud .dh-tyres { display: grid; grid-template-columns: 34px 34px; gap: 3px; margin: 6px 0; }
+#drive-hud .dh-tyres span { font-size: 11px; text-align: center; border-radius: 3px; padding: 2px 0; }
+#drive-hud .dh-right { position: absolute; right: 14px; bottom: 14px; background: rgba(8,10,14,0.65); padding: 8px 12px; border-radius: 8px; min-width: 190px; }
+#drive-hud .dh-soc .bar { height: 10px; background: #222; border-radius: 3px; overflow: hidden; margin: 3px 0; }
+#drive-hud .dh-soc .bar b { display: block; height: 100%; background: linear-gradient(90deg, #00c2ff, #6b62ff); }
+#drive-hud .dh-soc label { font-size: 11px; opacity: 0.8; }
+#drive-hud .dh-soc span { font-size: 12px; }
+#drive-hud .dh-badge { display: inline-block; margin: 4px 4px 0 0; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; background: #333; }
+#drive-hud .dh-badge.lit { background: #00a86b; }
+#drive-hud .dh-badge.dim:not(.lit) { opacity: 0.45; }
+#drive-hud .dh-small { font-size: 12px; opacity: 0.85; margin-top: 4px; }
+#drive-hud .dh-help { position: absolute; left: 0; right: 0; top: -22px; text-align: center; font-size: 12px; opacity: 0.6; }
