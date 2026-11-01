@@ -11,7 +11,10 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "check": "tsc --noEmit && vitest run",
+    "track:fetch": "bash tools/track/fetch_sources.sh",
+    "track:build": "python3 -I tools/track/build_track.py"
   },
   "engines": {
     "node": ">=20.19"
