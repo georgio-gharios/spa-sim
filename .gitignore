@@ -1,0 +1,30 @@
+# deps / build
+node_modules/
+dist/
+.vite/
+coverage/
+playwright-report/
+test-results/
+
+# python tooling
+__pycache__/
+*.pyc
+.venv/
+tools/.cache/
+
+# raw downloaded source data (large / third-party terms) — derived outputs live in data/
+data/raw/
+*.tif
+*.laz
+*.las
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# local user content
+driver-packs/*
+!driver-packs/example/
