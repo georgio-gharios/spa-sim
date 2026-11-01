@@ -1,6 +1,6 @@
 # SPA 2026: session hand-off status
 
-_Last updated: 2026-11-01, end of Phase 2. Read this first in a new session, then `docs/PROGRESS.md`,
+_Last updated: 2026-11-01, end of Phase 3. Read this first in a new session, then `docs/PROGRESS.md`,
 `docs/DECISIONS.md` and the original brief (owner's first message; the phase list is mirrored in `docs/PLAN.md`)._
 
 ## Where things stand
@@ -9,14 +9,18 @@ _Last updated: 2026-11-01, end of Phase 2. Read this first in a new session, the
 |---|---|---|
 | 1 Track data & geometry | ✅ done, all 4 acceptance checks pass | `v0.1-track` → `146b6ef` |
 | 2 Car physics (2026) + drivable prototype | ✅ done, all acceptance checks pass | `v0.2-physics` → `f1bfc8f` |
-| 3 Input (keyboard, pads, wheels, rebinding) | ⏭ next, not started | |
-| 4–12 | not started | |
+| 3 Input (keyboard, pads, wheels, rebinding) | ✅ done, all acceptance checks pass (hardware checklist pending, owner) | `v0.3-input` → see PROGRESS |
+| 4 Timing, HUD, cameras, replays, sessions | ⏭ next, not started | |
+| 5–12 | not started | |
 
-- **Code:** all work is on the branch `claude/loving-goldberg-z08sar` (it stands in for `main`, DECISIONS → Process).
+- **Code:** the latest work is on `claude/serene-knuth-c36hak` (Phase 3 session; it stands in for `main`). Phases 1–2 are also on
+  `claude/loving-goldberg-z08sar`. A new session gets its own designated branch: start it from the newest of these.
   `origin` also has a stray `phase-02-physics` branch (already merged; the owner may delete it).
 - **Tags are not on GitHub** (this cloud session could only push one branch). Recreate them in a new clone:
-  `git tag -a v0.1-track 146b6ef -m "Phase 1"` and `git tag -a v0.2-physics f1bfc8f -m "Phase 2"`.
-- **Tests:** `npm run check` → Vitest 38/38, `tsc` clean; `npm run e2e` → Playwright 2/2 (track fly-around, drive prototype).
+  `git tag -a v0.1-track 146b6ef -m "Phase 1"`, `git tag -a v0.2-physics f1bfc8f -m "Phase 2"` and
+  `git tag -a v0.3-input <merge commit "Merge phase-03-input"> -m "Phase 3"` (`git log --merges --oneline | grep phase-03`).
+- **Tests:** `npm run check` → Vitest 68/68, `tsc` clean; `npm run e2e` → Playwright 3/3 (track fly-around, drive, input with mock gamepads).
+- **Owner action pending:** run `docs/MANUAL_TESTS.md` (Phase 3 section) on real pads/wheel and paste results back.
 - **Owner workflow preferences:** pause for review after each phase. The owner is on Windows (PowerShell) and Firefox,
   with an RTX 5060 laptop (Ultra holds the 144 Hz vsync cap). They prefer short, direct answers and say "go" to start
   the next phase. Ask before anything expensive to undo.
@@ -51,14 +55,15 @@ src/track/         TrackModel (headless queries: s<->xy, surfaces, sectors from 
 src/physics/       spec.ts, Vehicle.ts (core), tyre.ts, data.ts, modules/ (interfaces, registry, 2026 + test modules)
 src/ai/            racing-line/ (minCurvature v1, speedProfile), ScriptedDriver.ts
 src/sim/           lapRunner.ts (headless hot lap)
-src/game/          DriveSession.ts (fixed 500 Hz loop)      src/input/ KeyboardDriver.ts (prototype)
+src/game/          DriveSession.ts (fixed 500 Hz loop)
+src/input/         actions, curves, devices (ids/glyphs/remap), bindings (store, localStorage), rumble, InputManager, browser wiring, labels
 src/render/        TrackViewer, scenery, lighting, tiling, quality presets, track/ geometry, car/ CarModel, DriveController
-src/ui/            viewerHud.ts, driveHud.ts
+src/ui/            viewerHud.ts, driveHud.ts, controlsMenu.ts
 tools/track/       fetch_sources.sh, fetch_wallonia.py, build_track.py, telemetry_overlay.py, geo.py
 tools/sim/         hotlap.ts, trace.ts, compare_pace.py      tools/telemetry/ export_fastf1.py
 tests/             Vitest (track, render geometry, physics units, physics laps); fixtures/ test-only car + RuleSet
-e2e/               Playwright (track fly-around, drive prototype)
-docs/              PLAN, PROGRESS, DECISIONS, OPEN_QUESTIONS, TELEMETRY, STATUS (this file), PNG plots, screens/
+e2e/               Playwright (track fly-around, drive, input with mocked Gamepad API)
+docs/              PLAN, PROGRESS, DECISIONS, OPEN_QUESTIONS, TELEMETRY, MANUAL_TESTS, STATUS (this file), PNG plots, screens/
 ```
 
 ## Key facts a new session must not re-derive
@@ -82,15 +87,14 @@ docs/              PLAN, PROGRESS, DECISIONS, OPEN_QUESTIONS, TELEMETRY, STATUS 
 - Still assumed (not yet checked against the 2026 photo): kerb positions and types, most runoff and barriers, enforced
   track-limit corners (T4/T9/T19).
 - Not modelled yet: the 250 kW MGU-K rule outside acceleration zones, brake temperatures, damage, slipstream, car–car contact.
+- Input: not yet verified on real hardware; rumble only in Chrome/Edge; no wheel FFB (no browser API); menu is mouse-only.
 
-## Next: Phase 3 (Input), per the brief
+## Next: Phase 4 (Timing, HUD, cameras, replays, sessions), per the brief
 
-Keyboard (WASD + arrows, smoothing settings, all action keys) · Gamepad API with DualShock 4 / DualSense / Xbox
-glyphs, deadzone/linearity/saturation, analogue triggers, rumble on kerbs/lock-ups/wheelspin · basic wheel support
-(axis mapping, rotation; no force feedback in browsers, documented) · full per-device rebinding UI saved to
-localStorage with reset · hot-plugging. Acceptance: each device type can complete a lap (mock Gamepad devices in
-tests + a manual checklist for the owner), rebinding persists across reloads, a deadzone-maths test.
-Replace `src/input/KeyboardDriver.ts`; DriveSession/DriveController only consume `DriverInput`.
+See `docs/PLAN.md` (Phase 4, `v0.4-timing`, est. 4 sessions): timing with sectors/mini-sectors from the control line,
+a full HUD (incl. the braking/racing-line aids already in AssistSettings), more cameras, replays (state keyframes,
+Q11) and sessions including Q1/Q2/Q3. Re-read the original brief's Phase 4 section for the acceptance checks.
+New actions (e.g. look back, replay, radio) go into `src/input/actions.ts` with defaults in `bindings.ts`.
 
 **Suggested opening prompt for the new session:**
-> Continue SPA 2026. Read docs/STATUS.md, docs/PROGRESS.md and docs/DECISIONS.md, recreate the local tags, then start Phase 3 (input).
+> Continue SPA 2026. Read docs/STATUS.md, docs/PROGRESS.md and docs/DECISIONS.md, recreate the local tags, then start Phase 4.
