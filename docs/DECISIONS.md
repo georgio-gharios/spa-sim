@@ -38,3 +38,4 @@ One line per decision: **what** — *why*.
 - Static structures are merged by material, then re-tiled; start lights stay separate. — *About 200 small boxes were 200+ draw calls in each pass.*
 - `preserveDrawingBuffer` is only on with `?static=1` (tests/screenshots). — *It forces a buffer copy every frame.*
 - The benchmark reports the GPU renderer string and CPU frame time. — *Hybrid-graphics laptops often run browsers on the iGPU; the numbers must show which GPU was measured.*
+- The frame-rate target is judged at the display's vsync cap; Ultra already holds 144 Hz on the RTX 5060 for the track scene. — *Browsers cap rAF at the refresh rate; uncapped headroom would need Firefox `layout.frame_rate=0` or Chrome `--disable-gpu-vsync`.*

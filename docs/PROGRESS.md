@@ -24,7 +24,11 @@ Test totals: Vitest 17/17, Playwright 1/1, `tsc --noEmit` clean.
 - **Assumed, not verified from primary sources:** kerb positions and types, runoff surfaces and widths, barrier types, enforced track-limit corners (T4, T9, T19), sector boundaries, timing-line position, camber values, and the whole pit-lane geometry. Each is marked "assumed" in `annotations.json`.
 - Elevation comes from a 30 m surface model. Raidillon's peak grade is 15 % (published ~17–18 %), and the short-wavelength profile is smoothed. Forested terrain away from the track still includes some canopy height.
 - Corner names for T9, T14 and T16 are best-knowledge; numbering should be checked against the official 2026 map.
-- **Performance (target laptop, owner-run, 2026-11-01):** first build, High preset: **avg 20.4 fps**, p50 41.7 ms, p95 97.2 ms, p99 145.8 ms (1790 frames). Far below target. Fixes applied since: spatial tiling of all track, terrain and signage meshes and of the forest (250–400 m tiles) so both the main and shadow passes frustum-cull; a per-preset tree draw distance; structure boxes merged by material; `preserveDrawingBuffer` off outside tests. In a like-for-like view, High now draws 0.5–1.3 M triangles per frame (was 2.9 M). The benchmark line now also reports the GPU name, CPU ms/frame and render size, to rule out integrated-GPU rendering. **Re-run needed.**
+- **Performance (target laptop, owner-run, 2026-11-01):**
+  - First build, High preset, browser on the Intel iGPU: avg 20.4 fps (p50 41.7 ms).
+  - After spatial tiling/culling, still on the Intel iGPU: avg 41.8 fps (p50 27.8 ms; CPU 2.2 ms/frame, so GPU-bound).
+  - After switching Firefox to the RTX 5060, **Ultra** preset, 1857×1002 @ 1.25: **avg 138.4 fps, p50 6.94 ms, p95 6.96 ms, p99 6.96 ms**; CPU 1.76 ms/frame. That is the 144 Hz vsync cap (6.94 ms), so the track scene meets the target with headroom of unknown size; browsers cap requestAnimationFrame at the refresh rate. Firefox reports a generic "GTX 980 … or similar" renderer string (anti-fingerprinting).
+  - The scene has no cars, AI or physics yet; re-benchmark as those land (Phase 8 and Phase 11 performance pass).
 - Trees have no LOD yet, and there are no grid-slot markings or crowd animation (planned for Phases 4 and 11).
 
 ### Blocked / owner actions
