@@ -3,10 +3,12 @@
  * created: the HUD reads the car's capabilities, never the era.
  */
 import type { DriveSession } from '../game/DriveSession';
+import type { InputManager } from '../input/InputManager';
+import { controlsHint } from '../input/labels';
 
 const fmt = (t: number | null) => (t === null ? '--:--.---' : `${Math.floor(t / 60)}:${(t % 60).toFixed(3).padStart(6, '0')}`);
 
-export function mountDriveHud(session: DriveSession, getCameraMode: () => string): { update: () => void; root: HTMLElement } {
+export function mountDriveHud(session: DriveSession, getCameraMode: () => string, input: InputManager): { update: () => void; root: HTMLElement } {
   const caps = session.car.capabilities;
   const root = document.createElement('div');
   root.id = 'drive-hud';
@@ -28,7 +30,7 @@ export function mountDriveHud(session: DriveSession, getCameraMode: () => string
       ${caps.overtakeMode ? `<div class="dh-badge dim" id="dh-ot">OVERTAKE</div>` : ''}
       <div class="dh-small" id="dh-assist"></div>
     </div>
-    <div class="dh-help">W/S or ↑/↓ throttle/brake · A/D or ←/→ steer · E/Q gears (auto in Casual)${caps.activeAero ? ' · X straight mode' : ''}${caps.overtakeMode ? ' · O overtake' : ''} · P pit limiter · R reset · H assists · V camera · F fly-around · C free cam</div>`;
+    <div class="dh-help" id="dh-help"></div>`;
   document.body.appendChild(root);
   const $ = (id: string) => root.querySelector<HTMLElement>(`#${id}`);
   const lights = [...root.querySelectorAll<HTMLElement>('#dh-lights i')];
@@ -44,6 +46,9 @@ export function mountDriveHud(session: DriveSession, getCameraMode: () => string
     const frac = Math.max(0, Math.min(1, (t.rpm - pu.downshiftRpm) / (pu.upshiftRpm - pu.downshiftRpm)));
     lights.forEach((l, i) => l.classList.toggle('on', frac * lights.length > i));
     if (n++ % 4 !== 0) return;
+    const hint = `${controlsHint(input, caps)} · F fly-around · C free cam`;
+    const help = $('dh-help')!;
+    if (help.textContent !== hint) help.textContent = hint;
     $('dh-cur')!.textContent = fmt(session.timing.current || null);
     $('dh-last')!.textContent = fmt(session.timing.last);
     $('dh-best')!.textContent = fmt(session.timing.best);

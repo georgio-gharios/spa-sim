@@ -1,7 +1,7 @@
 /** Connects a DriveSession (physics) to the scene: car model pose, chase/cockpit cameras. */
 import { type PerspectiveCamera, type Scene, Vector3 } from 'three';
 import type { DriveSession } from '../game/DriveSession';
-import type { KeyboardDriver } from '../input/KeyboardDriver';
+import type { InputManager } from '../input/InputManager';
 import { CarModel } from './car/CarModel';
 import type { WorldMap } from './track/geometry';
 
@@ -14,10 +14,14 @@ export class DriveController {
   private readonly camPos = new Vector3();
   private readonly camLook = new Vector3();
   private initialised = false;
+  /** Physics paused (controls menu open). */
+  paused = false;
+  /** Called when the menu action fires (pad Options/Menu button, or a bound key). */
+  onMenu: (() => void) | null = null;
 
   constructor(
     readonly session: DriveSession,
-    readonly keys: KeyboardDriver,
+    readonly input: InputManager,
     private readonly scene: Scene,
     private readonly wm: WorldMap,
   ) {
@@ -29,15 +33,24 @@ export class DriveController {
     this.scene.remove(this.model.root);
   }
 
-  /** Handle per-frame keys, step physics by real time, pose car and camera. */
+  /** Read input, handle one-shot actions, step physics by real time, pose car and camera. */
   update(dt: number, camera: PerspectiveCamera): void {
-    const k = this.keys;
-    if (k.consume('KeyR')) this.session.reset();
-    if (k.consume('KeyH')) this.session.toggleAssists();
-    if (k.consume('KeyV')) this.cameraMode = this.cameraMode === 'chase' ? 'cockpit' : 'chase';
-    this.session.setInput(k.update(dt));
-    this.session.advance(dt);
-    this.pose(dt);
+    const inp = this.input;
+    inp.enabled = !this.paused;
+    const di = inp.update(dt, this.session.car.vx);
+    if (inp.pressed('menu')) this.onMenu?.();
+    if (!this.paused) {
+      if (inp.pressed('reset')) {
+        this.session.reset();
+        inp.setLatch('aero', false);
+      }
+      if (inp.pressed('assists')) this.session.toggleAssists();
+      if (inp.pressed('camera')) this.cameraMode = this.cameraMode === 'chase' ? 'cockpit' : 'chase';
+      this.session.setInput(di);
+      this.session.advance(dt);
+    }
+    inp.rumble(this.paused ? null : this.session.car.telemetry(), this.session.takeImpact(), dt);
+    this.pose(this.paused ? 0 : dt);
     this.follow(camera, dt);
   }
 

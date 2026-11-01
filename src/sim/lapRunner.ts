@@ -68,22 +68,30 @@ export function centerLine(track: TrackModel): RacingLine {
   return computeRacingLine(track, { iterations: 0, margin: 99 });
 }
 
-/** One out-lap segment from before the Bus Stop, then one timed flying lap from control line to control line. */
-export function runHotLap(spec: CarSpec, env: VehicleEnv, opts: LapOptions = {}): LapResult {
+/** Racing line, target-speed profile and a scripted driver for a car (shared by laps and input tests). */
+export function scriptedDriverFor(spec: CarSpec, env: VehicleEnv, opts: LapOptions = {}): { driver: ScriptedDriver; profileLapTime: number } {
   const track = env.track;
   const line = opts.line ?? (opts.centerline ? centerLine(track) : racingLineFor(track));
   const compound = env.compounds[opts.compound ?? 'soft']!;
-  const fuelKg = opts.fuelKg ?? 5;
   const isHybrid = spec.modules.energyStore !== null;
   const profile = computeSpeedProfile(track, line, spec, {
     airDensity: env.airDensity,
     gravity: env.gravity,
     compound,
     lowDragZones: spec.aero.modes.straight ? env.zones.activeAeroZones.zones : [],
-    fuelKg,
+    fuelKg: opts.fuelKg ?? 5,
     gripUse: opts.gripUse ?? 0.93,
     electricW: isHybrid ? (v) => (v * 3.6 < 290 ? 350e3 : Math.max(0, (350e3 * (345 - v * 3.6)) / 55)) : undefined,
   });
+  return { driver: new ScriptedDriver(line, profile.vMax, opts.tuning), profileLapTime: profile.lapTime };
+}
+
+/** One out-lap segment from before the Bus Stop, then one timed flying lap from control line to control line. */
+export function runHotLap(spec: CarSpec, env: VehicleEnv, opts: LapOptions = {}): LapResult {
+  const track = env.track;
+  const compound = env.compounds[opts.compound ?? 'soft']!;
+  const fuelKg = opts.fuelKg ?? 5;
+  const { driver, profileLapTime } = scriptedDriverFor(spec, env, opts);
   const startS = track.wrapS(track.controlLineS - 2400);
   const car = new Vehicle(spec, env, {
     assists: opts.assists ?? { ...ASSISTS_CASUAL, tractionControl: 0, abs: false, steeringAssist: false },
@@ -97,7 +105,6 @@ export function runHotLap(spec: CarSpec, env: VehicleEnv, opts: LapOptions = {})
     startSpeedMs: 50,
     tyreTempC: compound.tempOptC - 5,
   });
-  const driver = new ScriptedDriver(line, profile.vMax, opts.tuning);
   driver.reset(car);
   const dt = 1 / PHYSICS_HZ;
   const samples: LapSample[] = [];
@@ -174,6 +181,6 @@ export function runHotLap(spec: CarSpec, env: VehicleEnv, opts: LapOptions = {})
     impacts,
     sectorTimes,
     fuelUsedKg: fuel0 - car.fuelKg,
-    profileLapTime: profile.lapTime,
+    profileLapTime,
   };
 }

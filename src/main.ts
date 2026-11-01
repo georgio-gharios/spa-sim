@@ -5,7 +5,9 @@ import { isQualityPreset } from './render/quality';
 import { mountViewerHud } from './ui/viewerHud';
 import { CAR_2026, makeEnv } from './physics/data';
 import { DriveSession } from './game/DriveSession';
-import { KeyboardDriver } from './input/KeyboardDriver';
+import { createBrowserInput } from './input/browser';
+import type { InputManager } from './input/InputManager';
+import { ControlsMenu } from './ui/controlsMenu';
 import { DriveController } from './render/DriveController';
 import { mountDriveHud } from './ui/driveHud';
 
@@ -16,6 +18,8 @@ declare global {
       viewer: TrackViewer;
       placeFly: (s: number, opts?: { height?: number; back?: number; lateral?: number }) => void;
       session?: DriveSession;
+      input?: InputManager;
+      controls?: ControlsMenu;
       bench?: { frames: number; p50: number; p95: number; p99: number; avgFps: number; cpuMs: number; gpu: string; dpr: number; size: string };
     };
   }
@@ -30,14 +34,22 @@ async function boot(): Promise<void> {
   const app = document.getElementById('app')!;
   const viewer = new TrackViewer(track, app, quality, weather, { preserveDrawingBuffer: params.get('static') === '1' });
   if (params.get('hud') !== '0') mountViewerHud(viewer);
-  // Phase 2 prototype: drive the 2026 car from the grid (keyboard)
-  const keys = new KeyboardDriver();
+  // drive the 2026 car from the grid: keyboard, gamepads and wheels (hot-pluggable, rebindable)
+  const input = createBrowserInput();
   const session = new DriveSession(CAR_2026, makeEnv(track), track.wrapS(track.startLineS - 12));
-  viewer.drive = new DriveController(session, keys, viewer.scene, viewer.wm);
-  const driveHud = params.get('hud') !== '0' ? mountDriveHud(session, () => viewer.drive?.cameraMode ?? '') : null;
+  const drive = new DriveController(session, input, viewer.scene, viewer.wm);
+  viewer.drive = drive;
+  const controls = new ControlsMenu(input);
+  controls.onToggle = (open) => {
+    drive.paused = open;
+    if (open && viewer.mode !== 'drive') viewer.setMode('drive');
+  };
+  drive.onMenu = () => controls.toggle();
+  const driveHud = params.get('hud') !== '0' ? mountDriveHud(session, () => viewer.drive?.cameraMode ?? '', input) : null;
   const prevOnFrame = viewer.onFrame;
   viewer.onFrame = (v) => {
     prevOnFrame?.(v);
+    controls.update();
     if (driveHud) driveHud.root.style.display = v.mode === 'drive' ? '' : 'none';
     if (v.mode === 'drive') driveHud?.update();
   };
@@ -50,6 +62,8 @@ async function boot(): Promise<void> {
     ready: true,
     viewer,
     session,
+    input,
+    controls,
     placeFly: (s, o = {}) => {
       viewer.setMode('fly-around');
       viewer.paused = true;
