@@ -1,0 +1,35 @@
+{
+  "_doc": "RuleSet for the 2026 era: everything car-dependent that Race Control, the HUD and the energy system must respect.",
+  "id": "2026",
+  "era": "2026",
+  "sources": [
+    "FIA 2026 Formula 1 Technical & Power Unit Regulations, as summarised by: Honda global.honda/en/F1/features/2026_Commentary/regulations/; Williams williamsf1.com 'EXPLAINED: 2026 Formula 1 regulation changes'; Mercedes W17 technical specification; The Race 'Boost, overtake mode, active aero' (2026); ESPN 'F1's 2026 rule tweaks' (2026). Primary FIA documents were not reachable from the build environment: values marked 'verify'."
+  ],
+  "activeAero": {
+    "allowed": true,
+    "transitionTimeS": 0.4,
+    "autoReturnOnBrake": true,
+    "autoReturnOnLift": true,
+    "source": "Straight/Corner mode; returns to Corner mode on brake or lift; transition within 0.4 s (The Race / Silverstone explainer 2026)"
+  },
+  "energy": {
+    "esSocWindowMJ": 4.0,
+    "harvestPerLapMJ": 8.5,
+    "mgukMaxKw": 350,
+    "mgukTaper": { "fullUntilKmh": 290, "zeroAtKmh": 345 },
+    "source": "SoC window 4 MJ and 8.5 MJ per-lap recovery (circuit-specific, up to 9 MJ per Mercedes W17 spec); MGU-K 350 kW tapering to zero between 290 and 345 km/h (reports disagree: 340-355 km/h end point). verify"
+  },
+  "overtake": {
+    "enabled": true,
+    "gapS": 1.0,
+    "extraEnergyMJ": 0.5,
+    "mgukTaper": { "fullUntilKmh": 337, "zeroAtKmh": 355 },
+    "detection": "one lap: within gapS of the car ahead at the detection line unlocks override on the next lap",
+    "source": "Manual Override / Overtake mode: within 1 s at the detection point; extra 0.5 MJ and an extended MGU-K taper (reports: 337-355 km/h). verify"
+  },
+  "drs": { "allowed": false, "source": "DRS removed for 2026" },
+  "pitLaneSpeedLimitKmh": { "value": 80, "source": "Sporting Regulations default" },
+  "notes": [
+    "Mid-2026 amendment (ESPN, 2026): MGU-K limited to 250 kW outside designated acceleration zones. Not modelled yet: needs per-circuit zone data; listed in PROGRESS.md."
+  ]
+}

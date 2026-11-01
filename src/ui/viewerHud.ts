@@ -13,7 +13,7 @@ export function mountViewerHud(v: TrackViewer): void {
       <option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="ultra">Ultra</option>
     </select></label>
     <label>Weather <select id="hud-weather"><option value="sunny">Sunny</option><option value="overcast">Overcast</option></select></label>
-    <div class="keys">F fly-around · C free camera (WASD/QE, drag to look, wheel = speed) · Space pause</div>`;
+    <div class="keys">Enter drive · F fly-around · C free camera (WASD/QE, drag to look, wheel = speed) · Space pause</div>`;
   document.body.appendChild(el);
   const q = el.querySelector<HTMLSelectElement>('#hud-quality')!;
   const w = el.querySelector<HTMLSelectElement>('#hud-weather')!;
@@ -30,7 +30,7 @@ export function mountViewerHud(v: TrackViewer): void {
   window.addEventListener('keydown', (e) => {
     if (e.code === 'KeyF') v.setMode('fly-around');
     if (e.code === 'KeyC') v.setMode('free');
-    if (e.code === 'Space') v.paused = !v.paused;
+    if (e.code === 'Space' && v.mode !== 'drive') v.paused = !v.paused;
   });
   const gpu = document.createElement('div');
   gpu.textContent = `GPU: ${v.gpuName}`;

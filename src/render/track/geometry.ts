@@ -235,42 +235,9 @@ export function buildKerbs(track: TrackModel, wm: WorldMap): { painted: GeoBuild
 
 // ------------------------------------------------------------------------------------------------ inside-of-corner clamp
 
-const clampCache = new WeakMap<TrackModel, { left: Float32Array; right: Float32Array }>();
-
-/**
- * Largest lateral offset (from the centerline) that can be swept on each side without the offset curve
- * folding over itself on the inside of a corner: 0.8 x the smallest radius within +-30 m.
- */
+/** See TrackModel.maxOffset (shared with physics so barriers are where they are drawn). */
 export function maxOffset(track: TrackModel, side: Side, i: number): number {
-  let c = clampCache.get(track);
-  if (!c) {
-    const N = track.count;
-    const left = new Float32Array(N).fill(1e6);
-    const right = new Float32Array(N).fill(1e6);
-    const w = Math.round(30 / track.ds);
-    const rl = new Float32Array(N);
-    const rr = new Float32Array(N);
-    for (let k = 0; k < N; k++) {
-      const kk = track.raw(k).curvature;
-      rl[k] = kk > 1e-6 ? 1 / kk : 1e6; // left turns: left side is inside
-      rr[k] = kk < -1e-6 ? -1 / kk : 1e6;
-    }
-    for (let k = 0; k < N; k++) {
-      let ml = 1e6;
-      let mr = 1e6;
-      for (let j = -w; j <= w; j++) {
-        const q = (((k + j) % N) + N) % N;
-        ml = Math.min(ml, rl[q]!);
-        mr = Math.min(mr, rr[q]!);
-      }
-      left[k] = 0.8 * ml;
-      right[k] = 0.8 * mr;
-    }
-    c = { left, right };
-    clampCache.set(track, c);
-  }
-  const N = track.count;
-  return c[side][((i % N) + N) % N]!;
+  return track.maxOffset(side, i * track.ds);
 }
 
 // ------------------------------------------------------------------------------------------------ runoff
@@ -341,9 +308,7 @@ export const BARRIER_HEIGHT: Record<Exclude<BarrierType, 'none'>, number> = {
 };
 
 export function barrierOffset(track: TrackModel, side: Side, s: number): number {
-  const edge = side === 'right' ? track.widthRight(s) : track.widthLeft(s);
-  const lim = maxOffset(track, side, Math.round(track.wrapS(s) / track.ds));
-  return Math.max(edge + 0.5, Math.min(edge + track.runoffWidth(side, s) + 0.3, lim + 0.3));
+  return track.barrierOffset(side, s);
 }
 
 /** Vertical barrier walls grouped by type, plus the catch-fence ribbon above them. */

@@ -199,7 +199,7 @@ def main() -> None:
 
     # The OSM-derived polyline has vertex kinks at the tightest apexes (e.g. a 5.6 m radius spike at
     # La Source). Locally smooth positions wherever the centerline radius drops below MIN_RADIUS.
-    MIN_RADIUS = 12.0
+    MIN_RADIUS = 18.0
     for it in range(400):
         k = curvature_fd(x, y)
         bad = np.abs(k) > 1.0 / MIN_RADIUS
@@ -430,7 +430,7 @@ def main() -> None:
     lat_d = (gxy[..., 0] - x[im]) * nx_r[im] + (gxy[..., 1] - y[im]) * ny_r[im]
     lat_d = np.clip(lat_d, -(wL[im] + 2.0), wR[im] + 2.0)
     cam_dz = np.where(is_main, -lat_d * np.tan(np.radians(camber[im])), 0.0)
-    road_z = z_all[ig] + cam_dz - 0.55
+    road_z = z_all[ig] + cam_dz - 0.75
     inner = corr_all[ig]
     blend = np.clip((dg - inner) / 45.0, 0, 1)
     blend = blend * blend * (3 - 2 * blend)

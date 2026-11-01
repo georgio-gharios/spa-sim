@@ -3,6 +3,11 @@ import { loadTrack } from './track/load';
 import { TrackViewer } from './render/TrackViewer';
 import { isQualityPreset } from './render/quality';
 import { mountViewerHud } from './ui/viewerHud';
+import { CAR_2026, makeEnv } from './physics/data';
+import { DriveSession } from './game/DriveSession';
+import { KeyboardDriver } from './input/KeyboardDriver';
+import { DriveController } from './render/DriveController';
+import { mountDriveHud } from './ui/driveHud';
 
 declare global {
   interface Window {
@@ -10,6 +15,7 @@ declare global {
       ready: boolean;
       viewer: TrackViewer;
       placeFly: (s: number, opts?: { height?: number; back?: number; lateral?: number }) => void;
+      session?: DriveSession;
       bench?: { frames: number; p50: number; p95: number; p99: number; avgFps: number; cpuMs: number; gpu: string; dpr: number; size: string };
     };
   }
@@ -24,9 +30,26 @@ async function boot(): Promise<void> {
   const app = document.getElementById('app')!;
   const viewer = new TrackViewer(track, app, quality, weather, { preserveDrawingBuffer: params.get('static') === '1' });
   if (params.get('hud') !== '0') mountViewerHud(viewer);
+  // Phase 2 prototype: drive the 2026 car from the grid (keyboard)
+  const keys = new KeyboardDriver();
+  const session = new DriveSession(CAR_2026, makeEnv(track), track.wrapS(track.startLineS - 12));
+  viewer.drive = new DriveController(session, keys, viewer.scene, viewer.wm);
+  const driveHud = params.get('hud') !== '0' ? mountDriveHud(session, () => viewer.drive?.cameraMode ?? '') : null;
+  const prevOnFrame = viewer.onFrame;
+  viewer.onFrame = (v) => {
+    prevOnFrame?.(v);
+    if (driveHud) driveHud.root.style.display = v.mode === 'drive' ? '' : 'none';
+    if (v.mode === 'drive') driveHud?.update();
+  };
+  window.addEventListener('keydown', (e) => {
+    if (e.code === 'Enter' || e.code === 'KeyG') viewer.setMode('drive');
+  });
+  const mode = params.get('mode');
+  if (mode !== 'fly' && params.get('bench') !== '1' && params.get('static') !== '1') viewer.setMode('drive');
   window.__spa = {
     ready: true,
     viewer,
+    session,
     placeFly: (s, o = {}) => {
       viewer.setMode('fly-around');
       viewer.paused = true;
